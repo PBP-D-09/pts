@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: django_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME:-django}
+      POSTGRES_USER: ${DB_USER:-django}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-django}
+    ports:
+      - "55432:5432"
+    volumes:
+      - django_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U ${DB_USER:-django} -d ${DB_NAME:-django}
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  django_db_data:

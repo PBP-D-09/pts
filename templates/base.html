@@ -1,0 +1,17 @@
+{% load static tailwind_tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% comment %}Meta Tags{% endcomment %}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SustainaBowl Website" />
+    <title>SustainaBowl</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}" />
+    {% tailwind_css %}
+  </head>
+  <body>
+    {% block content %}{% endblock %}
+  </body>
+</html>
