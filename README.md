@@ -99,7 +99,7 @@ API & Filter: Mengintegrasikan OpenStreetMap Nominatim API untuk pencarian alama
 
 AJAX/HTMX: Pencarian alamat menggunakan HTMX/AJAX yang secara langsung memperbarui pin pada peta.
 
-### review
+### reviews
 feedback kualitas makanan dan kemasan.
 
 * model Review dan Rating per menu makanan.
