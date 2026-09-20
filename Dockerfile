@@ -26,9 +26,12 @@ FROM base AS runner
 
 RUN groupadd --system app && useradd --system --gid app --create-home app
 
+ARG PRODUCTION=True
+
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PATH="/app/.venv/bin:$PATH"
+ENV PRODUCTION=${PRODUCTION}
 
 # Dummy env variables for build time
 ENV DB_PASSWORD="your_db_password"
