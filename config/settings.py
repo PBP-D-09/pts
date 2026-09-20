@@ -27,6 +27,11 @@ DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = [
     host.strip() for host in os.getenv("ALLOWED_HOSTS", "").split(",") if host.strip()
 ]
+CSRF_TRUSTED_ORIGINS = [
+    url.strip()
+    for url in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if url.strip()
+]
 ROOT_URLCONF = os.getenv("DJANGO_ROOT_URLCONF", "config.urls")
 WSGI_APPLICATION = os.getenv("DJANGO_WSGI_APPLICATION", "config.wsgi.application")
 PRODUCTION = os.getenv("PRODUCTION", "False").lower() == "true"
@@ -55,7 +60,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-if DEBUG:
+if not PRODUCTION:
     INSTALLED_APPS += ["django_browser_reload"]
     MIDDLEWARE += [
         "django_browser_reload.middleware.BrowserReloadMiddleware",
