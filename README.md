@@ -21,8 +21,6 @@ manajemen user (bisa tambahin preferensi diet), sistem akumulasi poin ramah ling
 * custom User Model (Auth Login/Register).
 * profile preferensi diet (Vegan, Vegetarian, Low Carb, Keto, Allergies).
 
-API: Spoonacular API/Open Food Facts API/Edamam (untuk melihat nutrisi makanan [spoonacular](https://spoonacular.com/food-api) [openfoodfacts](https://openpublicapis.com/api/open-food-facts) [edamam](https://www.edamam.com/))
-
 **Anggota Bertanggungjawab: Joachim Susatiyo**
 
 #### Requirements
@@ -33,7 +31,7 @@ API: Spoonacular API/Open Food Facts API/Edamam (untuk melihat nutrisi makanan [
 
 Auth Filter: Data kontak pribadi dan akumulasi Eco Points hanya dapat diakses oleh user yang sudah terautentikasi.
 
-API & Filter: Mengintegrasikan Spoonacular API / Open Food Facts API (atau Mock Nutrition API) untuk mengambil data batasan nutrisi harian dan memfilter rekomendasi kalori berdasarkan kategori diet user.
+API & Filter: Rekomendasi makanan berdasarkan kategori diet user.
 
 AJAX/HTMX: Mengubah toggle preferensi diet dan memperbarui foto profil secara realtime tanpa melakukan reload halaman.
 
@@ -43,8 +41,6 @@ katalog makanan sehat, filter bahan baku
 * model MenuItem, Category, dan Ingredient.
 * fitur pencarian dan filter menu berdasarkan preferensi diet.
 * eco points berdasarkan tipe kemasan.
-
-API: Forkprint/CarbonCloud (carbon footprint untuk menghitung eco score [forkprint](https://www.forkprint.app/) [carboncloud](https://carboncloud.com/api/))
 
 **Anggota Bertanggungjawab: Muhammad Zaky Robbani**
 
@@ -56,7 +52,7 @@ API: Forkprint/CarbonCloud (carbon footprint untuk menghitung eco score [forkpri
 
 Auth Filter: Katalog umum dapat diakses secara bebas oleh guest, tetapi fitur bookmark/favorite wajib login.
 
-API & Filter: Mengintegrasikan  untuk menghitung jejak karbon bahan baku, lalu filter berdasarkan rentang harga, eco-score, dan kategori makanan.
+API & Filter: Filter berdasarkan rentang harga, eco-score, dan kategori makanan.
 
 AJAX/HTMX: Fitur pencarian menu catalog dan pemfilteran kategori makanan.
 
@@ -66,8 +62,6 @@ checkout, keranjang belanja
 * model Cart, CartItem, Order, dan OrderItem.
 * fitur pemesanan dengan pilihan kemasan (reusable container, compostable box).
 * sistem riwayat pesanan dan pemotongan stok menu.
-
-API: OpenMeteoAPI (untuk mengecek cuaca dan menyesuaikan harga order [link](https://open-meteo.com/))
 
 **Anggota Bertanggungjawab: Anantha Kamal Eirian**
 
@@ -79,7 +73,7 @@ API: OpenMeteoAPI (untuk mengecek cuaca dan menyesuaikan harga order [link](http
 
 Auth Filter: Pengunjung guest hanya dapat menyimpan keranjang sementara, sedangkan pembuatan pesanan dan riwayat transaksi wajib login.
 
-API & Filter: Mengintegrasikan OpenMeteo Weather API untuk kalkulasi penyesuaian biaya pengiriman berbasis cuaca realtime, serta menyediakan filter riwayat pesanan berdasarkan rentang tanggal dan status transaksi.
+API & Filter: Menyediakan filter riwayat pesanan berdasarkan rentang tanggal dan status transaksi.
 
 AJAX/HTMX: Menyesuaikan kuantitas item keranjang atau menghapus item langsung dari keranjang belanja via tanpa melakukan refresh halaman.
 
@@ -112,8 +106,6 @@ feedback kualitas makanan dan kemasan.
 * rating untuk Rasa dan Kesesuaian Kemasan Ramah Lingkungan.
 * user bisa upload foto makanan dan memberikan saran perbaikan kemasan.
 
-API: SentimentAnalysisAPI (untuk mengetahui sentimen review [link](https://sentiment-analysis-api.solvcraft.workers.dev))
-
 **Anggota Bertanggungjawab: I Komang Arka Darma Laksana**
 
 #### Requirements
@@ -124,7 +116,7 @@ API: SentimentAnalysisAPI (untuk mengetahui sentimen review [link](https://senti
 
 Auth Filter: Seluruh review dapat dibaca secara umum oleh guest, tetapi action membuat, mengedit, dan menghapus review hanya diperbolehkan bagi user yang membuatnya.
 
-API & Filter: Mengintegrasikan Sentiment Analysis API untuk mendeteksi sentimen review (positive/neutral/negative), serta menyediakan filter review berdasarkan tingkat rating, sentimen teks, dan kepuasan kemasan.
+API & Filter: Menyediakan filter review berdasarkan tingkat rating, sentimen teks, dan kepuasan kemasan.
 
 AJAX/HTMX: Pengiriman review baru, upvote review bermanfaat, serta penyaringan review secara dinamis tanpa refresh halaman.
 
