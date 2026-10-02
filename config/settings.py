@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "tailwind",
     "lucide",
     "apps.theme",
+    "apps.landing",
     "apps.accounts",
     "apps.catalog",
     "apps.map",
