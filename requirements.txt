@@ -17,6 +17,7 @@ idna==3.19
 jinja2==3.1.6
 jsbeautifier==2.0.3
 json5==0.15.0
+lucide==1.1.4
 markdown-it-py==4.2.0
 markupsafe==3.0.3
 mdurl==0.1.2

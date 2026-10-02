@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "tailwind",
+    "lucide",
     "apps.theme",
     "apps.accounts",
     "apps.catalog",
