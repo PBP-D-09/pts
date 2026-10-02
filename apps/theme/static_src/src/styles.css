@@ -1,4 +1,154 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@700&display=swap");
 @import "tailwindcss";
+
+@theme {
+  --font-heading: "Poppins", sans-serif;
+  --font-sub-heading: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  --color-primary-100: #0c2f36;
+  --color-primary-90: #134954;
+  --color-primary-80: #1a6675;
+  --color-primary-70: #228396;
+  --color-primary-60: #29a0b7;
+  --color-primary-50: #37b9d2;
+  --color-primary-40: #61c8db;
+  --color-primary-30: #8ad6e5;
+  --color-primary-20: #b4e5ee;
+  --color-primary-10: #d5f0f6;
+
+  --color-secondary-100: #0c3733;
+  --color-secondary-90: #12544f;
+  --color-secondary-80: #19766f;
+  --color-secondary-70: #20978e;
+  --color-secondary-60: #28b9ae;
+  --color-secondary-50: #35d4c8;
+  --color-secondary-40: #5fddd3;
+  --color-secondary-30: #89e6df;
+  --color-secondary-20: #b3efe9;
+  --color-secondary-10: #d5f6f4;
+
+  --color-tertiary-100: #192a1b;
+  --color-tertiary-90: #26402a;
+  --color-tertiary-80: #355a3a;
+  --color-tertiary-70: #44744b;
+  --color-tertiary-60: #538d5b;
+  --color-tertiary-50: #65a56e;
+  --color-tertiary-40: #85b78c;
+  --color-tertiary-30: #a5caaa;
+  --color-tertiary-20: #c5ddc9;
+  --color-tertiary-10: #dfece1;
+
+  --color-neutral-100: #333333;
+  --color-neutral-90: #4a4a4a;
+  --color-neutral-80: #606060;
+  --color-neutral-70: #777777;
+  --color-neutral-60: #8e8e8e;
+  --color-neutral-50: #a4a4a4;
+  --color-neutral-40: #bbbbbb;
+  --color-neutral-30: #d2d2d2;
+  --color-neutral-20: #e8e8e8;
+  --color-neutral-10: #ffffff;
+
+  --color-red-10: #ffb3b3;
+  --color-red-20: #ff8080;
+  --color-red-30: #ff0000;
+  --color-warning-10: #fff2b3;
+  --color-warning-20: #ffea80;
+  --color-warning-30: #998000;
+}
+
+@utility text-h1 {
+  font-family: var(--font-heading);
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 60px;
+  letter-spacing: 0;
+}
+
+@utility text-h2 {
+  font-family: var(--font-heading);
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 48px;
+  letter-spacing: 0;
+}
+
+@utility text-h3 {
+  font-family: var(--font-heading);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 40px;
+  letter-spacing: 0;
+}
+
+@utility text-h4 {
+  font-family: var(--font-heading);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 36px;
+  letter-spacing: 0;
+}
+
+@utility text-h5 {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: 0;
+}
+
+@utility text-h6 {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+  letter-spacing: 0;
+}
+
+@utility text-h7 {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  letter-spacing: 0;
+}
+
+@utility text-h8 {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  letter-spacing: 0;
+}
+
+@utility text-h9 {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0;
+}
+
+@utility text-s1 { font-family: var(--font-sub-heading); font-size: 60px; font-weight: 600; line-height: 60px; letter-spacing: 0; }
+@utility text-s2 { font-family: var(--font-sub-heading); font-size: 48px; font-weight: 600; line-height: 48px; letter-spacing: 0; }
+@utility text-s3 { font-family: var(--font-sub-heading); font-size: 36px; font-weight: 600; line-height: 40px; letter-spacing: 0; }
+@utility text-s4 { font-family: var(--font-sub-heading); font-size: 30px; font-weight: 600; line-height: 36px; letter-spacing: 0; }
+@utility text-s5 { font-family: var(--font-sub-heading); font-size: 24px; font-weight: 600; line-height: 32px; letter-spacing: 0; }
+@utility text-s6 { font-family: var(--font-sub-heading); font-size: 20px; font-weight: 600; line-height: 28px; letter-spacing: 0; }
+@utility text-s7 { font-family: var(--font-sub-heading); font-size: 16px; font-weight: 600; line-height: 24px; letter-spacing: 0; }
+@utility text-s8 { font-family: var(--font-sub-heading); font-size: 14px; font-weight: 600; line-height: 20px; letter-spacing: 0; }
+@utility text-s9 { font-family: var(--font-sub-heading); font-size: 12px; font-weight: 600; line-height: 16px; letter-spacing: 0; }
+
+@utility text-b1 { font-family: var(--font-body); font-size: 60px; font-weight: 400; line-height: 60px; letter-spacing: 0; }
+@utility text-b2 { font-family: var(--font-body); font-size: 48px; font-weight: 400; line-height: 48px; letter-spacing: 0; }
+@utility text-b3 { font-family: var(--font-body); font-size: 36px; font-weight: 400; line-height: 40px; letter-spacing: 0; }
+@utility text-b4 { font-family: var(--font-body); font-size: 30px; font-weight: 400; line-height: 36px; letter-spacing: 0; }
+@utility text-b5 { font-family: var(--font-body); font-size: 24px; font-weight: 400; line-height: 32px; letter-spacing: 0; }
+@utility text-b6 { font-family: var(--font-body); font-size: 20px; font-weight: 400; line-height: 28px; letter-spacing: 0; }
+@utility text-b7 { font-family: var(--font-body); font-size: 16px; font-weight: 400; line-height: 24px; letter-spacing: 0; }
+@utility text-b8 { font-family: var(--font-body); font-size: 14px; font-weight: 400; line-height: 20px; letter-spacing: 0; }
+@utility text-b9 { font-family: var(--font-body); font-size: 12px; font-weight: 400; line-height: 16px; letter-spacing: 0; }
 
 /**
   * A catch-all path to Django template files, JavaScript, and Python files
@@ -8,3 +158,5 @@
   * the scope of this path.
   */
 @source "../../../**/*.{html,py,js}";
+@source "../../../../templates/**/*.html";
+@source "../../../../static/**/*.js";
