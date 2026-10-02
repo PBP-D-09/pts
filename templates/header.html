@@ -1,3 +1,43 @@
-<header>
-  Header
+{% load static lucide %}
+
+<header class="sticky top-0 z-30 border-b border-tertiary-10 bg-neutral-10/95 backdrop-blur">
+  <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:h-[85px] lg:px-14">
+    <a class="text-h5 text-primary-80"
+       href="{% url "landing:landing" %}">Sustaina<span class="text-tertiary-80">Bowl</span></a>
+    <nav class="text-s6 hidden items-center gap-8 text-tertiary-80 md:flex"
+         aria-label="Navigasi utama">
+      <a class="flex items-center gap-1.5 hover:text-primary-80 cursor-pointer">{% lucide "house" size=20 stroke_width=2 %} Home</a>
+      <a class="flex items-center gap-1.5 hover:text-primary-80 cursor-pointer">{% lucide "salad" size=20 stroke_width=2 %} Catalog</a>
+      <a class="flex items-center gap-1.5 hover:text-primary-80 cursor-pointer">{% lucide "store" size=20 stroke_width=2 %} Tenants</a>
+    </nav>
+    <div class="text-h6 text-neutral-10 bg-primary-70 rounded-lg hidden items-center gap-2 md:flex px-4 cursor-pointer hover:bg-primary-80 transition-colors">
+      <a class="rounded-md px-3 py-2" aria-disabled="true">Login</a>
+    </div>
+    <div class="relative md:hidden" data-mobile-nav>
+      <button class="grid size-10 place-items-center rounded-md text-primary-80 hover:bg-secondary-10"
+              type="button"
+              aria-label="Buka menu navigasi"
+              aria-controls="mobile-nav-menu"
+              aria-expanded="false"
+              data-mobile-nav-toggle>
+        <span data-mobile-nav-open-icon>{% lucide "menu" size=24 stroke_width=2.5 %}</span>
+        <span hidden data-mobile-nav-close-icon>{% lucide "x" size=24 stroke_width=2.5 %}</span>
+      </button>
+      <nav id="mobile-nav-menu"
+           class="text-s7 pointer-events-none absolute right-0 top-20 z-40 grid w-48 origin-top-right -translate-y-2 translate-x-2 overflow-hidden rounded-lg border border-tertiary-10 bg-neutral-10 p-2 opacity-0 shadow-lg transition duration-200 ease-out"
+           aria-label="Navigasi mobile"
+           hidden
+           data-mobile-nav-menu>
+        <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
+           href="#top">Home</a>
+        <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
+           href="#manfaat">Catalog</a>
+        <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
+           href="#tentang">Tenants</a>
+        <a class="mt-1 rounded bg-primary-80 px-3 py-2 text-center text-neutral-10 hover:bg-primary-90"
+           aria-disabled="true">Login</a>
+      </nav>
+    </div>
+  </div>
 </header>
+<script src="{% static 'js/header.js' %}" defer></script>
