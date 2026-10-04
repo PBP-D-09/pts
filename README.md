@@ -140,5 +140,6 @@ Tim operasional setiap tenan yang bertugas mengelola katalog menu, memproses pes
 * review: Memantau seluruh review masuk, dan feedback pelanggan terkait kualitas kemasan ramah lingkungan.
 
 ## Links
-* [Deployment PWS (Not Ready)](https://google.com)
-* [Figma (Not Ready)](https://figma.com)
+* [Deployment PWS](https://joachim-susatiyo-sustainabowl.pws.cs.ui.ac.id/)
+* [Figma](https://www.figma.com/design/jlTevWxK0uS15Kw4UGy6iW/SustainaBowl-Modules?m=auto&t=5ZTaJof03b5cdPk5-1)
+* [Figma 2](https://www.figma.com/design/fXWwOZdRrI56v7fBEEBDzU/Orders?node-id=0-1&t=5ZTaJof03b5cdPk5-1)
