@@ -3,12 +3,11 @@
 {% load static lucide %}
 
 {% block content %}
-  <main id="top"
-        class="relative overflow-x-hidden bg-gradient-to-b from-neutral-20 via-75% via-neutral-20 to-secondary-20">
+  <main id="top" class="relative overflow-x-hidden bg-neutral-20">
     <img src="{% static 'landing/img/sustainabowl-hero.png' %}"
          alt="SustainaBowl Hero"
-         class="absolute top-0 left-1/2 -translate-x-1/2 max-w-none select-none pointer-events-none w-[200vw] md:w-[120vw] lg:w-full opacity-50 [mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)] blur">
-    <section class="relative isolate flex min-h-[570px] items-start overflow-hidden sm:min-h-[680px] lg:min-h-[900px] lg:items-center">
+         class="absolute top-0 left-1/2 -translate-x-1/2 max-w-none select-none pointer-events-none w-[200vw] md:w-[120vw] lg:w-full opacity-50 mask-[linear-gradient(to_bottom,black_50%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_50%,transparent_100%)] blur">
+    <section class="relative isolate flex min-h-142.5 items-start overflow-hidden sm:min-h-170 lg:min-h-225 lg:items-center">
       <div class="mx-auto w-full max-w-7xl px-5 pt-24 text-center sm:px-8 lg:px-14 lg:pt-0">
         <h1 class="text-h3 text-primary-80 sm:text-h2 lg:text-9xl drop-shadow-lg">
           Sustaina<span class="text-tertiary-80">Bowl</span>
@@ -16,7 +15,7 @@
         <p class="text-b7 lg:text-b5 lg:max-w-xl font-bold mx-auto mt-6 max-w-md text-primary-80">
           Platform healthy meal ordering yang mengintegrasikan sustainability pada setiap transaksi.
         </p>
-        <a class="text-s7 md:text-s6 mt-8 inline-flex h-11 items-center justify-center rounded-md bg-primary-70 px-12 text-neutral-10 shadow-sm transition hover:bg-primary-90">Try Now</a>
+        <a href="#">{% include "components/button.html" with label="Try Now" class_name="mt-10 px-12" %}</a>
       </div>
     </section>
     <section id="tentang"
@@ -38,15 +37,15 @@
         <span class="text-primary-80">Sustaina</span><span class="text-tertiary-80">Bowl?</span>
       </h2>
       <div class="mx-auto mt-12 grid max-w-5xl gap-5 md:grid-cols-3 lg:mt-14 lg:gap-8">
-        <article class="min-h-60 rounded-xl bg-primary-20 p-7 text-primary-80">
+        <article class="ui-panel min-h-60 border-primary-20 bg-primary-20 p-7 text-primary-80">
           <h3 class="text-h6">Rencanakan Nutrisi</h3>
           <p class="text-b7 mt-2">Menjaga asupan gizi harian sesuai kebutuhan dietmu tanpa perlu pusing memikirkan menu setiap hari.</p>
         </article>
-        <article class="min-h-60 rounded-xl bg-primary-20 p-7 text-primary-80">
+        <article class="ui-panel min-h-60 border-primary-20 bg-primary-20 p-7 text-primary-80">
           <h3 class="text-h6">Bebas Sampah Plastik</h3>
           <p class="text-b7 mt-2">Menggunakan wadah ramah lingkungan, reusable container atau compostable box untuk menghentikan penumpukan sampah sekali pakai.</p>
         </article>
-        <article class="min-h-60 rounded-xl bg-primary-20 p-7 text-primary-80">
+        <article class="ui-panel min-h-60 border-primary-20 bg-primary-20 p-7 text-primary-80">
           <h3 class="text-h6">Pengiriman Minim Karbon</h3>
           <p class="text-b7 mt-2">Sistem pengantaran yang diefisienkan untuk menekan emisi karbon dari setiap pesanan.</p>
         </article>
@@ -56,87 +55,39 @@
       <div class="mx-auto max-w-3xl">
         <h2 class="text-h4 text-center text-tertiary-80 sm:text-h2">Need Help?</h2>
         <div class="mt-9 space-y-4">
-          <div class="faq-item rounded-xl bg-primary-80 text-neutral-10 shadow-sm overflow-hidden transition-colors"
-               data-open="true">
-            <button type="button"
-                    class="faq-toggle text-s8 flex w-full cursor-pointer items-center justify-between gap-4 px-6 py-4 font-medium text-left transition-colors hover:bg-primary-90 select-none">
+          <details class="ui-accordion" open>
+            <summary>
               <span>Apakah saya bisa menyesuaikan menu dengan pola diet tertentu?</span>
-              {% lucide "chevron-down" size=20 class="faq-icon shrink-0 transition-transform duration-300" %}
-            </button>
-            <div class="faq-content max-h-0 overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out opacity-0">
-              <p class="text-b8 border-t border-primary-70/40 bg-primary-20 px-6 py-4 text-primary-80">
+              <span class="ui-accordion__icon">{% lucide "chevron-down" size=24 stroke_width=2 %}</span>
+            </summary>
+            <div class="ui-accordion__content">
+              <p class="text-b8 pt-3 text-primary-10">
                 Bisa. Kamu dapat mengatur preferensi diet pada profil akun seperti Vegan, Vegetarian, Low Carb, Keto, hingga riwayat alergi.
               </p>
             </div>
-          </div>
-          <div class="faq-item rounded-xl bg-primary-80 text-neutral-10 shadow-sm overflow-hidden transition-colors">
-            <button type="button"
-                    class="faq-toggle text-s8 flex w-full cursor-pointer items-center justify-between gap-4 px-6 py-4 font-medium text-left transition-colors hover:bg-primary-90 select-none">
+          </details>
+          <details class="ui-accordion">
+            <summary>
               <span>Apakah saya harus membuat akun untuk melihat menu?</span>
-              {% lucide "chevron-down" size=20 class="faq-icon shrink-0 transition-transform duration-300" %}
-            </button>
-            <div class="faq-content max-h-0 overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out opacity-0">
-              <p class="text-b8 border-t border-primary-70/40 bg-primary-20 px-6 py-4 text-primary-80">
-                Tidak. Katalog dapat dilihat siapa saja, tetapi pemesanan memerlukan akun.
-              </p>
+              <span class="ui-accordion__icon">{% lucide "chevron-down" size=24 stroke_width=2 %}</span>
+            </summary>
+            <div class="ui-accordion__content">
+              <p class="text-b8 pt-3 text-primary-10">Tidak. Katalog dapat dilihat siapa saja, tetapi pemesanan memerlukan akun.</p>
             </div>
-          </div>
-          <div class="faq-item rounded-xl bg-primary-80 text-neutral-10 shadow-sm overflow-hidden transition-colors">
-            <button type="button"
-                    class="faq-toggle text-s8 flex w-full cursor-pointer items-center justify-between gap-4 px-6 py-4 font-medium text-left transition-colors hover:bg-primary-90 select-none">
+          </details>
+          <details class="ui-accordion">
+            <summary>
               <span>Apa itu Eco Points dan bagaimana cara mendapatkannya?</span>
-              {% lucide "chevron-down" size=20 class="faq-icon shrink-0 transition-transform duration-300" %}
-            </button>
-            <div class="faq-content max-h-0 overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out opacity-0">
-              <p class="text-b8 border-t border-primary-70/40 bg-primary-20 px-6 py-4 text-primary-80">
+              <span class="ui-accordion__icon">{% lucide "chevron-down" size=24 stroke_width=2 %}</span>
+            </summary>
+            <div class="ui-accordion__content">
+              <p class="text-b8 pt-3 text-primary-10">
                 Eco Points adalah poin penghargaan yang dikumpulkan pengguna berdasarkan pilihan kemasan ramah lingkungan dan aktivitas pemesanan makanan sehat di platform.
               </p>
             </div>
-          </div>
+          </details>
         </div>
       </div>
     </section>
   </main>
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const faqItems = document.querySelectorAll(".faq-item");
-
-    faqItems.forEach((item) => {
-      const toggle = item.querySelector(".faq-toggle");
-      const content = item.querySelector(".faq-content");
-      const icon = item.querySelector(".faq-icon");
-
-      if (!toggle || !content || !icon) return;
-
-      const openAccordion = () => {
-        toggle.setAttribute("aria-expanded", "true");
-        content.style.maxHeight = content.scrollHeight + "px";
-        content.classList.remove("opacity-0");
-        content.classList.add("opacity-100");
-        icon.classList.add("rotate-180");
-      };
-
-      const closeAccordion = () => {
-        toggle.setAttribute("aria-expanded", "false");
-        content.style.maxHeight = "0px";
-        content.classList.remove("opacity-100");
-        content.classList.add("opacity-0");
-        icon.classList.remove("rotate-180");
-      };
-
-      if (item.dataset.open === "true") {
-        openAccordion();
-      }
-
-      toggle.addEventListener("click", () => {
-        const isOpen = toggle.getAttribute("aria-expanded") === "true";
-        if (isOpen) {
-          closeAccordion();
-        } else {
-          openAccordion();
-        }
-      });
-    });
-  });
-  </script>
 {% endblock %}
