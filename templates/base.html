@@ -13,7 +13,19 @@
   </head>
   <body>
     {% include "header.html" %}
+    <div id="toast-container"
+         class="pointer-events-none fixed right-5 top-24 z-50 grid w-[min(24rem,calc(100%-2.5rem))] gap-2"
+         aria-live="polite"
+         aria-atomic="true"></div>
+    {% if messages %}
+      <div id="django-toast-messages" hidden>
+        {% for message in messages %}
+          <span data-toast-level="{% if 'error' in message.tags %}error{% elif 'warning' in message.tags %}warning{% else %}success{% endif %}">{{ message }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
     {% block content %}{% endblock %}
     {% include "footer.html" %}
+    <script src="{% static 'js/toast.js' %}"></script>
   </body>
 </html>

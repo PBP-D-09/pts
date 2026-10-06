@@ -1,0 +1,7 @@
+{% load lucide %}
+
+<details class="ui-accordion {{ class_name|default:'' }}"
+         {% if open %} open{% endif %}>
+  <summary><span>{{ label }}</span><span class="ui-accordion__icon">{% lucide "chevron-down" size=24 stroke_width=2 %}</span></summary>
+  <div class="ui-accordion__content">{{ content }}</div>
+</details>

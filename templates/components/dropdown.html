@@ -1,0 +1,10 @@
+{% load lucide %}
+
+<details class="ui-dropdown {{ class_name|default:'' }}"
+         {% if open %} open{% endif %}>
+  <summary><span>{{ label }}</span><span class="ui-dropdown__icon">{% lucide "chevron-down" size=24 stroke_width=2 %}</span></summary>
+  <div class="ui-dropdown__menu">
+    {% for item in items %}<a class="ui-dropdown__item"
+   href="{{ item.url|default:'#' }}">{{ item.label|default:item }}</a>{% endfor %}
+  </div>
+</details>

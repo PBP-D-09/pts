@@ -1,0 +1,10 @@
+<label class="ui-choice ui-choice--{{ choice_type|default:'checkbox' }} ui-choice--{{ variant|default:'primary' }} {{ class_name|default:'' }}">
+  <input class="ui-choice__input"
+         type="{{ choice_type|default:'checkbox' }}"
+         name="{{ name }}"
+         value="{{ value }}"
+         {% if checked %} checked{% endif %}
+         {% if disabled %} disabled{% endif %}>
+  <span class="ui-choice__control" aria-hidden="true"></span>
+  <span>{{ label }}</span>
+</label>
