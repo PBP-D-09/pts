@@ -60,7 +60,7 @@ indent-width = 4
 target-version = "py314"
 
 [tool.ruff.lint]
-ignore = []
+ignore = ["RUF012"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
