@@ -143,3 +143,106 @@ Tim operasional setiap tenan yang bertugas mengelola katalog menu, memproses pes
 * [Deployment PWS](https://joachim-susatiyo-sustainabowl.pws.cs.ui.ac.id/)
 * [Figma](https://www.figma.com/design/jlTevWxK0uS15Kw4UGy6iW/SustainaBowl-Modules?m=auto&t=5ZTaJof03b5cdPk5-1)
 * [Figma 2](https://www.figma.com/design/fXWwOZdRrI56v7fBEEBDzU/Orders?node-id=0-1&t=5ZTaJof03b5cdPk5-1)
+
+## Getting Started
+
+### Prerequisites
+
+Ensure you have the following tools installed on your development machine:
+
+- **Python**: `>= 3.14` (or `3.13+`)
+- **Package Manager**: [`uv`](https://docs.astral.sh/uv/) (recommended) or standard `pip`
+- **Docker & Docker Compose**: Optional for running a local PostgreSQL instance
+
+---
+
+### Local Development Setup
+
+#### Option 1: Using `uv` (Recommended)
+
+[`uv`](https://github.com/astral-sh/uv) provides npm-like deterministic dependency tracking:
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/JocimSus/myportofolio.git
+   cd myportofolio
+   ```
+
+2. **Synchronize dependencies**:
+   ```bash
+   uv sync
+   ```
+
+3. **Configure environment variables**:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. **Run database migrations**:
+   ```bash
+   uv run python manage.py migrate
+   ```
+
+5. **Install Tailwind**:
+  ```bash
+  python manage.py tailwind install
+  ```
+
+6. **Start the development server**:
+   ```bash
+   uv run python manage.py tailwind dev
+   ```
+
+---
+
+#### Option 2: Using Python `venv` & `pip`
+
+1. **Create and activate a virtual environment**:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Configure environment variables**:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. **Run database migrations**:
+   ```bash
+   python manage.py migrate
+   ```
+
+5. **Install Tailwind**:
+  ```bash
+  python manage.py tailwind install
+  ```
+
+6. **Start the development server**:
+   ```bash
+   python manage.py tailwind dev
+   ```
+
+The application will be accessible at:
+- Web Application: [http://localhost:8000](http://localhost:8000)
+
+---
+
+### Database Setup & Migrations
+
+By default, when `PRODUCTION=False`, the application uses a local SQLite database (`db.sqlite3`).
+
+```bash
+# Create new migrations if you modified models
+python manage.py makemigrations
+
+# Apply pending migrations
+python manage.py migrate
+```
+
+---
