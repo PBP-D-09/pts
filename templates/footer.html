@@ -9,8 +9,8 @@
         <nav class="text-h5 grid gap-1 text-neutral-100"
              aria-label="Navigasi footer">
           <a href="{% url "landing:landing" %}" class="cursor-pointer">Home</a>
-          <a href="#manfaat" class="cursor-pointer">Catalog</a>
-          <a href="#tentang" class="cursor-pointer">Tenants</a>
+          <a href="{% url 'landing:landing' %}" class="cursor-pointer">Catalog</a>
+          <a href="{% url 'landing:landing' %}" class="cursor-pointer">Tenants</a>
         </nav>
       </div>
       <div class="text-center lg:pr-12">

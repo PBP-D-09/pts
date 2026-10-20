@@ -56,9 +56,9 @@
         <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
            href="{% url 'landing:landing' %}">Home</a>
         <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
-           href="#manfaat">Catalog</a>
+           href="{% url 'landing:landing' %}">Catalog</a>
         <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
-           href="#tentang">Tenants</a>
+           href="{% url 'landing:landing' %}">Tenants</a>
         <div class="mt-1 border-t border-tertiary-10 pt-3">
           {% if user.is_authenticated %}
             {% include "components/button.html" with href=accounts_url label=user.first_name|default:user.email element_id="header-profile-name-mobile" class_name="w-full px-3 py-2 text-s8" %}
