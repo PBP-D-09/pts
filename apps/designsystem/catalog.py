@@ -31,98 +31,96 @@ NAVIGATION = [
     },
 ]
 
+
+def _color(class_name, hex_value):
+    return {
+        "token": class_name.removeprefix("bg-"),
+        "hex": hex_value,
+        "class_name": class_name,
+    }
+
+
 COLOR_GROUPS = [
     {
         "label": "Primary",
         "usage": "Aksi utama, identitas, dan penekanan visual.",
         "colors": [
-            ("primary-100", "#0c2f36"),
-            ("primary-90", "#134954"),
-            ("primary-80", "#1a6675"),
-            ("primary-70", "#228396"),
-            ("primary-60", "#29a0b7"),
-            ("primary-50", "#37b9d2"),
-            ("primary-40", "#61c8db"),
-            ("primary-30", "#8ad6e5"),
-            ("primary-20", "#b4e5ee"),
-            ("primary-10", "#d5f0f6"),
+            _color("bg-primary-100", "#0c2f36"),
+            _color("bg-primary-90", "#134954"),
+            _color("bg-primary-80", "#1a6675"),
+            _color("bg-primary-70", "#228396"),
+            _color("bg-primary-60", "#29a0b7"),
+            _color("bg-primary-50", "#37b9d2"),
+            _color("bg-primary-40", "#61c8db"),
+            _color("bg-primary-30", "#8ad6e5"),
+            _color("bg-primary-20", "#b4e5ee"),
+            _color("bg-primary-10", "#d5f0f6"),
         ],
     },
     {
         "label": "Secondary",
         "usage": "Elemen pendukung dan permukaan bernuansa teal.",
         "colors": [
-            ("secondary-100", "#0c3733"),
-            ("secondary-90", "#12544f"),
-            ("secondary-80", "#19766f"),
-            ("secondary-70", "#20978e"),
-            ("secondary-60", "#28b9ae"),
-            ("secondary-50", "#35d4c8"),
-            ("secondary-40", "#5fddd3"),
-            ("secondary-30", "#89e6df"),
-            ("secondary-20", "#b3efe9"),
-            ("secondary-10", "#d5f6f4"),
+            _color("bg-secondary-100", "#0c3733"),
+            _color("bg-secondary-90", "#12544f"),
+            _color("bg-secondary-80", "#19766f"),
+            _color("bg-secondary-70", "#20978e"),
+            _color("bg-secondary-60", "#28b9ae"),
+            _color("bg-secondary-50", "#35d4c8"),
+            _color("bg-secondary-40", "#5fddd3"),
+            _color("bg-secondary-30", "#89e6df"),
+            _color("bg-secondary-20", "#b3efe9"),
+            _color("bg-secondary-10", "#d5f6f4"),
         ],
     },
     {
         "label": "Tertiary",
         "usage": "Aksen hijau untuk sustainability dan status positif.",
         "colors": [
-            ("tertiary-100", "#192a1b"),
-            ("tertiary-90", "#26402a"),
-            ("tertiary-80", "#355a3a"),
-            ("tertiary-70", "#44744b"),
-            ("tertiary-60", "#538d5b"),
-            ("tertiary-50", "#65a56e"),
-            ("tertiary-40", "#85b78c"),
-            ("tertiary-30", "#a5caaa"),
-            ("tertiary-20", "#c5ddc9"),
-            ("tertiary-10", "#dfece1"),
+            _color("bg-tertiary-100", "#192a1b"),
+            _color("bg-tertiary-90", "#26402a"),
+            _color("bg-tertiary-80", "#355a3a"),
+            _color("bg-tertiary-70", "#44744b"),
+            _color("bg-tertiary-60", "#538d5b"),
+            _color("bg-tertiary-50", "#65a56e"),
+            _color("bg-tertiary-40", "#85b78c"),
+            _color("bg-tertiary-30", "#a5caaa"),
+            _color("bg-tertiary-20", "#c5ddc9"),
+            _color("bg-tertiary-10", "#dfece1"),
         ],
     },
     {
         "label": "Neutral",
         "usage": "Teks, divider, latar, dan elemen berprioritas rendah.",
         "colors": [
-            ("neutral-100", "#333333"),
-            ("neutral-90", "#4a4a4a"),
-            ("neutral-80", "#606060"),
-            ("neutral-70", "#777777"),
-            ("neutral-60", "#8e8e8e"),
-            ("neutral-50", "#a4a4a4"),
-            ("neutral-40", "#bbbbbb"),
-            ("neutral-30", "#d2d2d2"),
-            ("neutral-20", "#e8e8e8"),
-            ("neutral-10", "#ffffff"),
+            _color("bg-neutral-100", "#333333"),
+            _color("bg-neutral-90", "#4a4a4a"),
+            _color("bg-neutral-80", "#606060"),
+            _color("bg-neutral-70", "#777777"),
+            _color("bg-neutral-60", "#8e8e8e"),
+            _color("bg-neutral-50", "#a4a4a4"),
+            _color("bg-neutral-40", "#bbbbbb"),
+            _color("bg-neutral-30", "#d2d2d2"),
+            _color("bg-neutral-20", "#e8e8e8"),
+            _color("bg-neutral-10", "#ffffff"),
         ],
     },
     {
         "label": "Feedback & semantic",
         "usage": "Status, validasi, canvas, dan border aplikasi.",
         "colors": [
-            ("red-10", "#ffb3b3"),
-            ("red-20", "#ff8080"),
-            ("red-30", "#ff0000"),
-            ("red-70", "#ff383c"),
-            ("warning-10", "#fff2b3"),
-            ("warning-20", "#ffea80"),
-            ("warning-30", "#998000"),
-            ("surface-canvas", "#f4f7f2"),
-            ("surface-subtle", "#edf7f0"),
-            ("border-subtle", "#dce6df"),
+            _color("bg-red-10", "#ffb3b3"),
+            _color("bg-red-20", "#ff8080"),
+            _color("bg-red-30", "#ff0000"),
+            _color("bg-red-70", "#ff383c"),
+            _color("bg-warning-10", "#fff2b3"),
+            _color("bg-warning-20", "#ffea80"),
+            _color("bg-warning-30", "#998000"),
+            _color("bg-surface-canvas", "#f4f7f2"),
+            _color("bg-surface-subtle", "#edf7f0"),
+            _color("bg-border-subtle", "#dce6df"),
         ],
     },
-]
-
-COLOR_GROUPS = [
-    {
-        **group,
-        "colors": [
-            {"token": token, "hex": hex_value, "css_var": f"--color-{token}"}
-            for token, hex_value in group["colors"]
-        ],
-    }
-    for group in COLOR_GROUPS
 ]
 
 TYPOGRAPHY_GROUPS = [

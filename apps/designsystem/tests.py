@@ -1,7 +1,7 @@
 from django.test import SimpleTestCase
 from django.urls import reverse
 
-from .catalog import NAVIGATION
+from .catalog import COLOR_GROUPS, NAVIGATION
 
 
 class DesignSystemPageTests(SimpleTestCase):
@@ -41,6 +41,10 @@ class DesignSystemPageTests(SimpleTestCase):
         self.assertContains(response, "data-copy-code")
         self.assertContains(response, "data-demo-toast")
         self.assertContains(response, 'src="/static/designsystem/design-system.js"')
+        for group in COLOR_GROUPS:
+            for color in group["colors"]:
+                with self.subTest(color_class=color["class_name"]):
+                    self.assertContains(response, f'shadow-sm {color["class_name"]}"')
         for template_name in (
             "components/button.html",
             "components/choice.html",

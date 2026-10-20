@@ -26,7 +26,7 @@
           <div class="mt-5 grid gap-3 sm:grid-cols-2">
             {% for color in group.colors %}
               <div class="flex items-center gap-3">
-                <span class="size-12 shrink-0 rounded-lg border border-border-subtle shadow-sm"
+                <span class="size-12 shrink-0 rounded-lg border border-border-subtle shadow-sm {{ color.class_name }}"
                       aria-hidden="true"></span>
                 <span class="min-w-0">
                   <span class="text-s9 block truncate text-neutral-100">{{ color.token }}</span>
