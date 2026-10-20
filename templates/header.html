@@ -18,7 +18,8 @@
     {% if user.is_authenticated %}
       <details class="relative hidden md:block">
         <summary class="text-s7 flex cursor-pointer list-none items-center gap-1 text-primary-80 [&::-webkit-details-marker]:hidden">
-          {{ user.first_name|default:user.email }} {% lucide "chevron-down" size=20 stroke_width=2 %}
+          <span id="header-profile-name-desktop">{{ user.first_name|default:user.email }}</span>
+          {% lucide "chevron-down" size=20 stroke_width=2 %}
         </summary>
         <div class="ui-panel absolute right-0 top-9 z-40 grid w-48 gap-1 p-2">
           <a href="{{ accounts_url }}"
@@ -60,7 +61,7 @@
            href="#tentang">Tenants</a>
         <div class="mt-1 border-t border-tertiary-10 pt-3">
           {% if user.is_authenticated %}
-            {% include "components/button.html" with href=accounts_url label=user.first_name|default:user.email class_name="w-full px-3 py-2 text-s8" %}
+            {% include "components/button.html" with href=accounts_url label=user.first_name|default:user.email element_id="header-profile-name-mobile" class_name="w-full px-3 py-2 text-s8" %}
             <form method="post" action="{% url 'accounts:logout' %}" class="mt-2">
               {% csrf_token %}
               {% include "components/button.html" with label="Keluar" variant="danger" button_type="submit" class_name="w-full px-3 py-2 text-s8" %}

@@ -2,6 +2,7 @@
 
 {% if href %}
   <a href="{{ href }}"
+     {% if element_id %}id="{{ element_id }}"{% endif %}
      class="ui-button ui-button--{{ variant|default:'primary' }} {{ class_name|default:'' }}"
      {% if disabled %} aria-disabled="true"{% endif %}>
     {% if icon_left %}
@@ -14,6 +15,7 @@
   </a>
 {% else %}
   <button type="{{ button_type|default:'button' }}"
+          {% if element_id %}id="{{ element_id }}"{% endif %}
           class="ui-button ui-button--{{ variant|default:'primary' }} {{ class_name|default:'' }}"
           {% if disabled %} disabled{% endif %}
           {% if name %} name="{{ name }}"{% endif %}
