@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     "apps.reviews",
 ]
 
+AUTH_USER_MODEL = "accounts.CustomUser"
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
