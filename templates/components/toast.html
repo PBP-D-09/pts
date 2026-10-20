@@ -1,0 +1,4 @@
+<p class="ui-toast ui-toast--{{ level|default:'success' }} {{ class_name|default:'' }}"
+   {% if live %} role="status"{% endif %}>
+  {{ message }}
+</p>

@@ -1,0 +1,6 @@
+<label class="ui-field ui-field--{{ variant|default:'primary' }} {% if field.errors %}ui-field--error{% endif %} {{ class_name|default:'' }}">
+  <span class="ui-field__label">{{ field.label }}{% if field.field.required %}<span class="ui-field__required"
+      aria-hidden="true">*</span>{% endif %}</span>
+  {{ field }}
+  {% for error in field.errors %}<span class="ui-field__error">{{ error }}</span>{% endfor %}
+</label>

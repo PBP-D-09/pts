@@ -1,0 +1,91 @@
+{% load lucide %}
+
+<div class="space-y-12">
+  <header class="border-b border-primary-20 pb-4">
+    <p class="text-s9 uppercase tracking-widest text-tertiary-80">Composed patterns</p>
+    <h2 class="text-h3 mt-1 text-primary-90">Molekul</h2>
+  </header>
+  <section id="form-fields" class="scroll-mt-28 space-y-4">
+    <div>
+      <h3 class="text-h5 text-primary-90">Form field</h3>
+      <p class="text-b8 mt-1 text-neutral-70">Label, input, required marker, varian warna, dan pesan validasi.</p>
+    </div>
+    <div class="ui-panel grid gap-5 p-6 md:grid-cols-2">
+      {% include "components/form_field.html" with field=form.full_name variant="primary" %}
+      {% include "components/form_field.html" with field=form.email variant="secondary" %}
+      {% include "components/form_field.html" with field=form.phone_number variant="tertiary" %}
+      {% include "components/form_field.html" with field=invalid_form.email variant="primary" %}
+    </div>
+    {% include "designsystem/partials/code_block.html" with code=snippets.form_fields %}
+  </section>
+  <section id="accordion" class="scroll-mt-28 space-y-4">
+    <div>
+      <h3 class="text-h5 text-primary-90">Accordion</h3>
+      <p class="text-b8 mt-1 text-neutral-70">Konten yang dapat dibuka dan ditutup dengan elemen details native.</p>
+    </div>
+    <div class="ui-panel grid gap-3 p-6">
+      {% include "components/accordion.html" with label="Apa itu Eco Points?" content="Eco Points diberikan untuk pilihan kemasan dan pengiriman yang lebih ramah lingkungan." open=True %}
+      {% include "components/accordion.html" with label="Bagaimana memilih menu?" content="Gunakan preferensi diet dan alergi untuk menyaring rekomendasi makanan." %}
+    </div>
+    {% include "designsystem/partials/code_block.html" with code=snippets.accordion %}
+  </section>
+  <section id="dropdown" class="scroll-mt-28 space-y-4">
+    <div>
+      <h3 class="text-h5 text-primary-90">Dropdown</h3>
+      <p class="text-b8 mt-1 text-neutral-70">Daftar aksi atau navigasi ringkas yang menggunakan details native.</p>
+    </div>
+    <div class="ui-panel flex min-h-56 items-start justify-center p-8">
+      <div class="w-full max-w-sm">
+        {% include "components/dropdown.html" with label="Pilih kategori" items=dropdown_items %}
+      </div>
+    </div>
+    {% include "designsystem/partials/code_block.html" with code=snippets.dropdown %}
+  </section>
+  <section id="panels-dialog" class="scroll-mt-28 space-y-4">
+    <div>
+      <h3 class="text-h5 text-primary-90">Panel dan dialog</h3>
+      <p class="text-b8 mt-1 text-neutral-70">Permukaan pengelompokan konten dan dialog modal native.</p>
+    </div>
+    <div class="grid gap-5 md:grid-cols-2">
+      <article class="ui-panel p-6">
+        <span class="ui-tag ui-tag--warning">Rekomendasi</span>
+        <h4 class="text-h6 mt-4 text-primary-90">Green Protein Bowl</h4>
+        <p class="text-b8 mt-2 text-neutral-70">Panel default dengan border, radius, dan shadow yang konsisten.</p>
+        <button type="button"
+                class="ui-button ui-button--primary mt-5"
+                data-dialog-open="design-system-dialog">
+          Buka dialog
+        </button>
+      </article>
+      <article class="ui-panel ui-panel--compact bg-surface-subtle p-6">
+        <h4 class="text-h6 text-tertiary-90">Compact panel</h4>
+        <p class="text-b8 mt-2 text-neutral-70">Radius lebih kecil untuk area yang padat dan utilitarian.</p>
+      </article>
+    </div>
+    <dialog id="design-system-dialog"
+            class="ui-dialog w-[min(26rem,calc(100%-2rem))] p-6 backdrop:bg-primary-100/50"
+            data-dialog>
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h4 class="text-h6 text-primary-90">Konfirmasi pilihan</h4>
+          <p class="text-b8 mt-2 text-neutral-70">Dialog menggunakan API native sehingga mendukung fokus dan Escape.</p>
+        </div>
+        <button type="button"
+                class="ui-icon-button ui-icon-button--ghost shrink-0"
+                aria-label="Tutup dialog"
+                data-dialog-close>
+          {% lucide "x" size=20 stroke_width=2 %}
+        </button>
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <button type="button"
+                class="ui-button ui-button--secondary"
+                data-dialog-close>
+          Batal
+        </button>
+        <button type="button" class="ui-button ui-button--primary" data-dialog-close>Konfirmasi</button>
+      </div>
+    </dialog>
+    {% include "designsystem/partials/code_block.html" with code=snippets.panels_dialog %}
+  </section>
+</div>

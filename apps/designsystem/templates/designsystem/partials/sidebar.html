@@ -1,0 +1,56 @@
+{% load lucide %}
+
+<button type="button"
+        class="ui-icon-button ui-icon-button--primary fixed bottom-5 left-5 z-40 size-12 shadow-xl md:hidden"
+        aria-label="Buka navigasi design system"
+        aria-controls="design-system-sidebar"
+        aria-expanded="false"
+        data-sidebar-toggle>
+  <span data-sidebar-open-icon>{% lucide "list-filter" size=22 stroke_width=2 %}</span>
+  <span hidden data-sidebar-close-icon>{% lucide "x" size=22 stroke_width=2 %}</span>
+</button>
+<button type="button"
+        class="fixed inset-x-0 bottom-0 top-20 z-40 bg-primary-100/50 backdrop-blur-sm md:hidden"
+        aria-label="Tutup navigasi design system"
+        hidden
+        data-sidebar-overlay></button>
+<aside id="design-system-sidebar"
+       class="fixed bottom-0 left-0 top-20 z-50 w-72 -translate-x-full overflow-y-auto border-r border-primary-20 bg-neutral-10 p-4 shadow-2xl transition-transform duration-200 md:sticky md:top-24 md:z-10 md:block md:h-[calc(100vh-7rem)] md:w-64 md:shrink-0 md:translate-x-0 md:rounded-lg md:border md:shadow-sm"
+       aria-label="Navigasi design system"
+       aria-hidden="true"
+       data-sidebar>
+  <div class="sticky top-0 z-10 bg-neutral-10 pb-4">
+    <label class="relative block">
+      <span class="sr-only">Cari komponen</span>
+      <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-primary-80">{% lucide "search" size=18 stroke_width=2 %}</span>
+      <input type="search"
+             class="ui-input h-10 pl-10"
+             placeholder="Cari komponen..."
+             autocomplete="off"
+             data-sidebar-search />
+    </label>
+  </div>
+  <nav class="space-y-6" aria-label="Daftar komponen">
+    {% for group in navigation %}
+      <div data-nav-group>
+        <h2 class="text-s9 mb-2 uppercase tracking-wider text-tertiary-80">{{ group.label }}</h2>
+        <ul class="grid gap-1">
+          {% for item in group.items %}
+            <li data-nav-item
+                data-search-text="{{ group.label|lower }} {{ item.label|lower }}">
+              <a href="#{{ item.id }}"
+                 class="text-b8 block rounded-md px-3 py-2 text-neutral-80 transition-colors hover:bg-primary-10 hover:text-primary-90">
+                {{ item.label }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+    <p class="text-b8 rounded-md bg-surface-subtle p-3 text-center text-neutral-70"
+       hidden
+       data-search-empty>
+      Tidak ada komponen yang cocok.
+    </p>
+  </nav>
+</aside>

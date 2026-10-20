@@ -1,0 +1,20 @@
+<div id="profile-form">
+  <form method="post"
+        action="{% url 'accounts:update_profile' %}"
+        hx-post="{% url 'accounts:update_profile' %}"
+        hx-target="#profile-form"
+        hx-swap="outerHTML"
+        class="mt-4 grid gap-3 md:grid-cols-2">
+    {% csrf_token %}
+    {% for field in profile_form %}
+      {% if field.name == "phone_number" %}
+        {% include "components/form_field.html" with field=field class_name="md:col-span-2" %}
+      {% else %}
+        {% include "components/form_field.html" with field=field %}
+      {% endif %}
+    {% endfor %}
+    <div class="md:col-span-2 mt-1">
+      {% include "components/button.html" with label="Simpan perubahan" button_type="submit" %}
+    </div>
+  </form>
+</div>

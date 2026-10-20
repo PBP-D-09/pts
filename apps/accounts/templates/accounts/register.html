@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <main class="grid min-h-screen place-items-center bg-surface-canvas px-5 py-12">
+    <section class="ui-panel w-full max-w-md p-7">
+      <h1 class="text-h4 text-primary-100">Buat Akun</h1>
+      <form method="post" class="mt-6 space-y-4">
+        {% csrf_token %}
+        {% for field in form %}
+          {% include "components/form_field.html" with field=field %}
+        {% endfor %}
+        {% include "components/button.html" with label="Daftar" button_type="submit" class_name="w-full" %}
+      </form>
+      <p class="text-b9 mt-5 text-neutral-70">
+        Sudah punya akun?
+        <a href="{% url 'accounts:login' %}" class="ui-text-link">Masuk</a>
+      </p>
+    </section>
+  </main>
+{% endblock %}

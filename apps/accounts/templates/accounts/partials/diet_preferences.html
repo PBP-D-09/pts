@@ -1,0 +1,12 @@
+<div class="flex flex-wrap gap-2">
+  {% for diet in diet_preferences %}
+    <button type="button"
+            hx-post="{% url 'accounts:toggle_diet' %}"
+            hx-vals='{"diet": "{{ diet.code }}"}'
+            hx-target="#diet-preferences"
+            hx-swap="innerHTML"
+            class="ui-chip {% if diet.code in selected_diet_codes %}ui-chip--selected{% endif %}">
+      {{ diet.label }}
+    </button>
+  {% endfor %}
+</div>

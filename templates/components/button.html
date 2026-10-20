@@ -1,0 +1,31 @@
+{% load lucide %}
+
+{% if href %}
+  <a href="{{ href }}"
+     {% if element_id %}id="{{ element_id }}"{% endif %}
+     class="ui-button ui-button--{{ variant|default:'primary' }} {{ class_name|default:'' }}"
+     {% if disabled %} aria-disabled="true"{% endif %}>
+    {% if icon_left %}
+      <span class="ui-button__icon">{% lucide icon_left size=24 stroke_width=2 %}</span>
+    {% endif %}
+    {{ label }}
+    {% if icon_right %}
+      <span class="ui-button__icon">{% lucide icon_right size=24 stroke_width=2 %}</span>
+    {% endif %}
+  </a>
+{% else %}
+  <button type="{{ button_type|default:'button' }}"
+          {% if element_id %}id="{{ element_id }}"{% endif %}
+          class="ui-button ui-button--{{ variant|default:'primary' }} {{ class_name|default:'' }}"
+          {% if disabled %} disabled{% endif %}
+          {% if name %} name="{{ name }}"{% endif %}
+          {% if value %} value="{{ value }}"{% endif %}>
+    {% if icon_left %}
+      <span class="ui-button__icon">{% lucide icon_left size=24 stroke_width=2 %}</span>
+    {% endif %}
+    {{ label }}
+    {% if icon_right %}
+      <span class="ui-button__icon">{% lucide icon_right size=24 stroke_width=2 %}</span>
+    {% endif %}
+  </button>
+{% endif %}
