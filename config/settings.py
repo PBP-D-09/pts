@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "apps.map",
     "apps.orders",
     "apps.reviews",
+    "apps.designsystem",
 ]
 
 AUTH_USER_MODEL = "accounts.CustomUser"
