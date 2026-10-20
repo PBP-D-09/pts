@@ -1,8 +1,11 @@
 import json
+from io import BytesIO
+from tempfile import TemporaryDirectory
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from PIL import Image
 
 from .models import (
     CustomUser,
@@ -164,6 +167,37 @@ class AccountViewsTests(TestCase):
         self.assertFalse(UserAllergy.objects.filter(pk=allergy.pk).exists())
         self.assertEqual(user.userprofile.diet_activities.count(), 2)
 
+    def test_allergy_delete_rejects_malformed_and_out_of_range_ids(self):
+        self.client.force_login(self.create_user())
+
+        for allergy_id in ("not-a-number", str(2**100)):
+            with self.subTest(allergy_id=allergy_id):
+                response = self.client.post(
+                    reverse("accounts:manage_allergy"),
+                    {"delete": allergy_id},
+                    HTTP_HX_REQUEST="true",
+                )
+
+                self.assertEqual(response.status_code, 404)
+
+    def test_user_cannot_delete_another_users_allergy(self):
+        user = self.create_user()
+        other = self.create_user("other@example.com")
+        allergy = UserAllergy.objects.create(
+            profile=other.userprofile,
+            name="Susu",
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("accounts:manage_allergy"),
+            {"delete": allergy.pk},
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(UserAllergy.objects.filter(pk=allergy.pk).exists())
+
     def test_reset_only_removes_current_users_points(self):
         user = self.create_user()
         other = self.create_user("other@example.com")
@@ -220,6 +254,20 @@ class AccountViewsTests(TestCase):
         )
         self.assertRedirects(response, reverse("accounts:accounts"))
 
+    def test_login_normalizes_email_case(self):
+        self.create_user("mixed.case@example.com")
+
+        response = self.client.post(
+            reverse("accounts:login"),
+            {
+                "email": "MIXED.CASE@EXAMPLE.COM",
+                "password": "strong-password-123",
+            },
+        )
+
+        self.assertRedirects(response, reverse("accounts:accounts"))
+        self.assertIn("_auth_user_id", self.client.session)
+
     def test_upload_photo_rejects_non_image_file(self):
         self.client.force_login(self.create_user())
         response = self.client.post(
@@ -232,6 +280,37 @@ class AccountViewsTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
         self.assertIn("error", response.json())
+
+    def test_uploaded_photo_is_publicly_served_when_debug_is_false(self):
+        self.client.force_login(self.create_user())
+        image_buffer = BytesIO()
+        Image.new("RGB", (2, 2), color="green").save(image_buffer, format="PNG")
+        image_bytes = image_buffer.getvalue()
+
+        with (
+            TemporaryDirectory() as media_root,
+            self.settings(DEBUG=False, MEDIA_ROOT=media_root),
+        ):
+            upload_response = self.client.post(
+                reverse("accounts:upload_photo"),
+                {
+                    "photo": SimpleUploadedFile(
+                        "profile.png", image_bytes, content_type="image/png"
+                    )
+                },
+            )
+            self.assertEqual(upload_response.status_code, 200)
+
+            self.client.logout()
+            media_response = self.client.get(upload_response.json()["photo_url"])
+
+            self.assertEqual(media_response.status_code, 200)
+            self.assertEqual(b"".join(media_response.streaming_content), image_bytes)
+
+    def test_public_media_route_rejects_path_traversal(self):
+        response = self.client.get("/media/../config/settings.py")
+
+        self.assertEqual(response.status_code, 404)
 
     def test_admin_insights_api_requires_authentication(self):
         response = self.client.get(reverse("accounts:admin_insights_api"))
