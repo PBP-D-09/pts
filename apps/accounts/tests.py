@@ -77,12 +77,14 @@ class AccountViewsTests(TestCase):
 
     def test_profile_update_uses_partial_response_for_htmx(self):
         user = self.create_user()
+        user.first_name = "Nama Lama"
+        user.save(update_fields=["first_name"])
         self.client.force_login(user)
         response = self.client.post(
             reverse("accounts:update_profile"),
             {
                 "full_name": "Nama Baru",
-                "email": user.email,
+                "email": "new@example.com",
                 "birth_date": "2004-05-19",
                 "phone_number": "081212345678",
             },
@@ -95,6 +97,41 @@ class AccountViewsTests(TestCase):
             {"showToast": {"message": "Perubahan tersimpan.", "level": "success"}},
         )
         self.assertEqual(user.first_name, "Nama Baru")
+        self.assertEqual(user.email, "new@example.com")
+        self.assertContains(response, 'value="Nama Baru"')
+        self.assertContains(response, 'value="new@example.com"')
+        self.assertNotContains(response, 'value="Nama Lama"')
+        self.assertContains(
+            response, 'id="account-profile-name" hx-swap-oob="innerHTML"'
+        )
+        self.assertContains(
+            response, 'id="header-profile-name-desktop" hx-swap-oob="innerHTML"'
+        )
+        self.assertContains(
+            response, 'id="header-profile-name-mobile" hx-swap-oob="innerHTML"'
+        )
+
+    def test_invalid_htmx_profile_update_preserves_input_without_name_swaps(self):
+        user = self.create_user()
+        user.first_name = "Nama Lama"
+        user.save(update_fields=["first_name"])
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("accounts:update_profile"),
+            {
+                "full_name": "Nama Belum Valid",
+                "email": "",
+                "birth_date": "",
+                "phone_number": "",
+            },
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'value="Nama Belum Valid"')
+        self.assertContains(response, "This field is required.")
+        self.assertNotContains(response, "hx-swap-oob")
 
     def test_user_can_toggle_only_own_diet(self):
         user = self.create_user()
