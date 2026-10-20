@@ -1,0 +1,88 @@
+{% load lucide %}
+
+<div class="space-y-12">
+  <header class="border-b border-primary-20 pb-4">
+    <p class="text-s9 uppercase tracking-widest text-tertiary-80">Core controls</p>
+    <h2 class="text-h3 mt-1 text-primary-90">Atom</h2>
+  </header>
+  <section id="buttons" class="scroll-mt-28 space-y-4">
+    <div>
+      <h3 class="text-h5 text-primary-90">Button dan link</h3>
+      <p class="text-b8 mt-1 text-neutral-70">Aksi utama, sekunder, berbahaya, dan navigasi kontekstual.</p>
+    </div>
+    <div class="ui-panel flex min-h-44 flex-wrap items-center justify-center gap-4 p-6">
+      {% include "components/button.html" with label="Primary" variant="primary" icon_left="leaf" %}
+      {% include "components/button.html" with label="Secondary" variant="secondary" %}
+      {% include "components/button.html" with label="Tertiary" variant="tertiary" %}
+      {% include "components/button.html" with label="Danger" variant="danger" icon_right="trash-2" %}
+      {% include "components/button.html" with label="Disabled" disabled=True %}
+      <a class="ui-text-link" href="#buttons">Text link</a>
+      <button class="ui-icon-button ui-icon-button--primary"
+              type="button"
+              aria-label="Tambah item">
+        {% lucide "plus" size=20 stroke_width=2 %}
+      </button>
+      <button class="ui-icon-button ui-icon-button--ghost"
+              type="button"
+              aria-label="Pengaturan">
+        {% lucide "settings" size=20 stroke_width=2 %}
+      </button>
+    </div>
+    {% include "designsystem/partials/code_block.html" with code=snippets.buttons %}
+  </section>
+  <section id="choices" class="scroll-mt-28 space-y-4">
+    <div>
+      <h3 class="text-h5 text-primary-90">Checkbox dan radio</h3>
+      <p class="text-b8 mt-1 text-neutral-70">Pilihan tunggal maupun jamak dalam tiga varian warna.</p>
+    </div>
+    <div class="ui-panel flex min-h-44 flex-wrap items-center justify-center gap-7 bg-primary-100 p-6">
+      {% include "components/choice.html" with choice_type="checkbox" name="demo-diet" value="vegan" label="Vegan" checked=True %}
+      {% include "components/choice.html" with choice_type="checkbox" name="demo-diet" value="keto" label="Keto" variant="secondary" %}
+      {% include "components/choice.html" with choice_type="radio" name="demo-package" value="reusable" label="Reusable" variant="tertiary" checked=True %}
+      {% include "components/choice.html" with choice_type="radio" name="demo-package" value="compostable" label="Disabled" disabled=True %}
+    </div>
+    {% include "designsystem/partials/code_block.html" with code=snippets.choices %}
+  </section>
+  <section id="chips-tags" class="scroll-mt-28 space-y-4">
+    <div>
+      <h3 class="text-h5 text-primary-90">Chip dan tag</h3>
+      <p class="text-b8 mt-1 text-neutral-70">Filter yang dapat dipilih dan label status ringkas.</p>
+    </div>
+    <div class="ui-panel flex min-h-36 flex-wrap items-center justify-center gap-3 p-6">
+      <button class="ui-chip" type="button">Vegetarian</button>
+      <button class="ui-chip ui-chip--selected" type="button">Vegan</button>
+      <span class="ui-tag ui-tag--warning">Mengandung kacang</span>
+    </div>
+    {% include "designsystem/partials/code_block.html" with code=snippets.chips_tags %}
+  </section>
+  <section id="toasts" class="scroll-mt-28 space-y-4">
+    <div>
+      <h3 class="text-h5 text-primary-90">Toast</h3>
+      <p class="text-b8 mt-1 text-neutral-70">Notifikasi sementara yang juga dipakai oleh event HTMX.</p>
+    </div>
+    <div class="ui-panel grid min-h-44 gap-5 p-6">
+      <div class="flex flex-wrap justify-center gap-3">
+        {% include "components/toast.html" with level="success" message="Perubahan tersimpan." %}
+        {% include "components/toast.html" with level="warning" message="Periksa kembali pilihanmu." %}
+        {% include "components/toast.html" with level="error" message="Terjadi kesalahan." %}
+      </div>
+      <div class="flex flex-wrap justify-center gap-3">
+        <button class="ui-button ui-button--primary"
+                type="button"
+                data-demo-toast
+                data-toast-level="success"
+                data-toast-message="Toast berhasil ditampilkan.">
+          Coba success
+        </button>
+        <button class="ui-button ui-button--danger"
+                type="button"
+                data-demo-toast
+                data-toast-level="error"
+                data-toast-message="Contoh pesan error.">
+          Coba error
+        </button>
+      </div>
+    </div>
+    {% include "designsystem/partials/code_block.html" with code=snippets.toasts %}
+  </section>
+</div>

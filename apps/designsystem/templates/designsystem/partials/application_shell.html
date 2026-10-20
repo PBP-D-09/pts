@@ -1,0 +1,23 @@
+<div class="space-y-12">
+  <header class="border-b border-primary-20 pb-4">
+    <p class="text-s9 uppercase tracking-widest text-tertiary-80">Application sections</p>
+    <h2 class="text-h3 mt-1 text-primary-90">Application shell</h2>
+  </header>
+  <section id="application-shell" class="scroll-mt-28 space-y-4">
+    <div>
+      <h3 class="text-h5 text-primary-90">Navbar dan footer</h3>
+      <p class="text-b8 mt-1 text-neutral-70">Navbar di atas dan footer di bawah halaman ini adalah preview langsung dari shell aplikasi.</p>
+    </div>
+    <div class="ui-panel grid gap-5 p-6 md:grid-cols-2">
+      <article class="rounded-lg bg-primary-10 p-5">
+        <h4 class="text-h6 text-primary-90">Navbar</h4>
+        <p class="text-b8 mt-2 text-neutral-70">Sticky, responsif, dan menyesuaikan kondisi autentikasi pengguna.</p>
+      </article>
+      <article class="rounded-lg bg-secondary-10 p-5">
+        <h4 class="text-h6 text-secondary-90">Footer</h4>
+        <p class="text-b8 mt-2 text-neutral-70">Memuat navigasi sekunder, kanal kontak, dan identitas aplikasi.</p>
+      </article>
+    </div>
+    {% include "designsystem/partials/code_block.html" with code=snippets.application_shell %}
+  </section>
+</div>

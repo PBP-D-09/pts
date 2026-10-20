@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Design System | SustainaBowl{% endblock %}
+{% block description %}Showcase design system SustainaBowl{% endblock %}
+{% block content %}
+  <main class="min-h-screen bg-surface-canvas text-neutral-100">
+    <div class="mx-auto flex max-w-7xl items-start gap-8 px-5 py-10 sm:px-8 lg:px-14">
+      {% include "designsystem/partials/sidebar.html" %}
+      <div class="min-w-0 flex-1 space-y-20">
+        {% include "designsystem/partials/foundations.html" %}
+        {% include "designsystem/partials/atoms.html" %}
+        {% include "designsystem/partials/molecules.html" %}
+        {% include "designsystem/partials/application_shell.html" %}
+      </div>
+    </div>
+  </main>
+  <script src="{% static 'designsystem/design-system.js' %}" defer></script>
+{% endblock %}

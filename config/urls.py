@@ -36,6 +36,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("apps.landing.urls")),
     path("accounts/", include("apps.accounts.urls")),
+    path("design-system/", include("apps.designsystem.urls")),
 ]
 
 if not settings.PRODUCTION:

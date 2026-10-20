@@ -1,0 +1,14 @@
+{% load lucide %}
+
+<div class="relative overflow-hidden rounded-lg border border-primary-90 bg-primary-100 p-4 text-primary-10 shadow"
+     data-code-block>
+  <button type="button"
+          class="ui-icon-button absolute right-3 top-3 border border-primary-60 bg-primary-90 text-neutral-10 hover:bg-primary-80"
+          aria-label="Salin contoh kode"
+          data-copy-code>
+    <span data-copy-icon>{% lucide "copy" size=17 stroke_width=2 %}</span>
+    <span hidden data-copy-success-icon>{% lucide "check" size=17 stroke_width=2 %}</span>
+  </button>
+  <pre class="overflow-x-auto pr-12 text-sm leading-6"><code>{{ code }}</code></pre>
+  <span class="sr-only" aria-live="polite" data-copy-status></span>
+</div>

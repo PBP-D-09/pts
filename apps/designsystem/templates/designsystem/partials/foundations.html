@@ -1,0 +1,70 @@
+<div class="space-y-12">
+  <header class="border-b border-primary-20 pb-4">
+    <p class="text-s9 uppercase tracking-widest text-tertiary-80">Foundation</p>
+    <h2 class="text-h3 mt-1 text-primary-90">Fondasi</h2>
+  </header>
+  <section id="brand" class="scroll-mt-28 space-y-4">
+    <div>
+      <h3 class="text-h5 text-primary-90">Brand</h3>
+      <p class="text-b8 mt-1 text-neutral-70">Wordmark utama menggunakan warna primary dan tertiary.</p>
+    </div>
+    <div class="ui-panel flex min-h-44 items-center justify-center bg-surface-subtle p-8">
+      <p class="text-h2 text-primary-80">Sustaina<span class="text-tertiary-80">Bowl</span></p>
+    </div>
+    {% include "designsystem/partials/code_block.html" with code=snippets.brand %}
+  </section>
+  <section id="colors" class="scroll-mt-28 space-y-4">
+    <div>
+      <h3 class="text-h5 text-primary-90">Warna</h3>
+      <p class="text-b8 mt-1 text-neutral-70">Token warna yang dideklarasikan pada theme dan dipakai di seluruh aplikasi.</p>
+    </div>
+    <div class="grid gap-5 xl:grid-cols-2">
+      {% for group in color_groups %}
+        <article class="ui-panel p-5">
+          <h4 class="text-h6 text-primary-90">{{ group.label }}</h4>
+          <p class="text-b9 mt-1 text-neutral-70">{{ group.usage }}</p>
+          <div class="mt-5 grid gap-3 sm:grid-cols-2">
+            {% for color in group.colors %}
+              <div class="flex items-center gap-3">
+                <span class="size-12 shrink-0 rounded-lg border border-border-subtle shadow-sm"
+                      style="background-color: var({{ color.css_var }})"
+                      aria-hidden="true"></span>
+                <span class="min-w-0">
+                  <span class="text-s9 block truncate text-neutral-100">{{ color.token }}</span>
+                  <span class="text-b9 block uppercase text-neutral-70">{{ color.hex }}</span>
+                </span>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    {% include "designsystem/partials/code_block.html" with code=snippets.colors %}
+  </section>
+  <section id="typography" class="scroll-mt-28 space-y-4">
+    <div>
+      <h3 class="text-h5 text-primary-90">Tipografi</h3>
+      <p class="text-b8 mt-1 text-neutral-70">Skala heading, sub-heading, dan body untuk menjaga hierarki yang konsisten.</p>
+    </div>
+    <div class="grid gap-5 xl:grid-cols-3">
+      {% for group in typography_groups %}
+        <article class="ui-panel min-w-0 p-5">
+          <h4 class="text-h6 text-primary-90">{{ group.label }}</h4>
+          <p class="text-b9 mt-1 min-h-8 text-neutral-70">{{ group.usage }}</p>
+          <div class="mt-4 divide-y divide-border-subtle">
+            {% for item in group.items %}
+              <div class="grid grid-cols-[3rem_minmax(0,1fr)] items-center gap-3 py-3">
+                <span class="text-s9 rounded bg-primary-10 px-2 py-1 text-center text-primary-90">{{ item.token }}</span>
+                <span class="min-w-0">
+                  <span class="{{ item.class_name }} block truncate text-primary-100">Aa</span>
+                  <span class="text-b9 block text-neutral-70">{{ item.metrics }}</span>
+                </span>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    {% include "designsystem/partials/code_block.html" with code=snippets.typography %}
+  </section>
+</div>
