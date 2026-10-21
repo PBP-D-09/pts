@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% load static lucide %}
+
+{% block content %}
+  <main class="bg-surface-canvas min-h-screen px-5 py-8 sm:px-8 lg:px-16 lg:pb-16">
+    <div class="mx-auto max-w-6xl">
+      <section class="flex min-h-26 flex-col justify-center gap-2">
+        <p class="text-s8 text-tertiary-80">Akun Tenan</p>
+        <h1 id="tenant-account-name" class="text-h4 text-primary-100">{{ tenant.name }}</h1>
+        <p class="text-b8 text-neutral-70">Kelola identitas dan kontak tenanmu.</p>
+      </section>
+      <section class="ui-panel mt-8 p-5">
+        <div class="flex items-start gap-4">
+          <div class="relative size-24 shrink-0">
+            <div class="grid size-full place-items-center overflow-hidden rounded-full bg-surface-subtle text-primary-80">
+              {% if tenant.photo %}
+                <img id="tenant-photo"
+                     src="{{ tenant.photo.url }}"
+                     alt="Logo {{ tenant.name }}"
+                     class="size-full object-cover">
+              {% else %}
+                <span id="tenant-photo-icon">{% lucide "store" size=36 stroke_width=1.8 %}</span>
+                <img id="tenant-photo"
+                     alt="Logo {{ tenant.name }}"
+                     class="hidden size-full object-cover">
+              {% endif %}
+            </div>
+            <label for="tenant-photo-input"
+                   class="ui-icon-button ui-icon-button--primary absolute bottom-0 right-0 cursor-pointer shadow"
+                   title="Ubah logo tenan">
+              {% lucide "camera" size=17 stroke_width=2 %}
+              <span class="sr-only">Ubah logo tenan</span>
+            </label>
+          </div>
+          <input id="tenant-photo-input"
+                 type="file"
+                 name="photo"
+                 accept="image/jpeg,image/png,image/webp"
+                 class="hidden">
+          <div>
+            <h2 class="text-h6 text-primary-100">Profil Tenan</h2>
+            <p class="text-b9 mt-1 text-neutral-70">Informasi ini menjadi identitas akun restoranmu.</p>
+          </div>
+        </div>
+        {% include "accounts/partials/tenant_form.html" %}
+      </section>
+    </div>
+  </main>
+  <script src="{% static 'django_htmx/htmx-2.min.js' %}" defer></script>
+  <script>
+    document.body.addEventListener("htmx:configRequest", (event) => {
+      event.detail.headers["X-CSRFToken"] = "{{ csrf_token }}";
+    });
+
+    document.getElementById("tenant-photo-input")?.addEventListener("change", async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const data = new FormData();
+      data.append("photo", file);
+
+      try {
+        const response = await fetch(
+          "{% url 'accounts:upload_tenant_photo' %}",
+          {
+            method: "POST",
+            headers: {"X-CSRFToken": "{{ csrf_token }}"},
+            body: data
+          }
+        );
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "Logo tenan tidak dapat diunggah.");
+        const image = document.getElementById("tenant-photo");
+        image.src = payload.photo_url;
+        image.classList.remove("hidden");
+        document.getElementById("tenant-photo-icon")?.classList.add("hidden");
+        window.showToast("Logo tenan diperbarui.");
+      } catch (error) {
+        window.showToast(error.message || "Logo tenan tidak dapat diunggah.", "error");
+      } finally {
+        event.target.value = "";
+      }
+    });
+  </script>
+{% endblock %}

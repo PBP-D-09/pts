@@ -1,0 +1,16 @@
+<div id="tenant-form">
+  <form method="post"
+        action="{% url 'accounts:update_tenant' %}"
+        hx-post="{% url 'accounts:update_tenant' %}"
+        hx-target="#tenant-form"
+        hx-swap="outerHTML"
+        class="mt-5 grid gap-3 md:grid-cols-2">
+    {% csrf_token %}
+    {% for field in tenant_form %}
+      {% include "components/form_field.html" with field=field %}
+    {% endfor %}
+    <div class="md:col-span-2 mt-1">
+      {% include "components/button.html" with label="Simpan perubahan" button_type="submit" %}
+    </div>
+  </form>
+</div>

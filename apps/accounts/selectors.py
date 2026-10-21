@@ -2,11 +2,15 @@ from django.apps import apps
 from django.db.models import Count, Sum
 from django.utils import timezone
 
-from .models import CustomUser, DietPreference, EcoPointActivity, UserProfile
+from .models import CustomUser, DietPreference, EcoPointActivity, Tenant, UserProfile
 
 
 def get_profile_for_user(user):
     return UserProfile.objects.select_related("user").get(user=user)
+
+
+def get_tenant_for_user(user):
+    return Tenant.objects.select_related("owner").get(owner=user)
 
 
 def get_diet_preference(code):

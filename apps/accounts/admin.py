@@ -6,6 +6,7 @@ from .models import (
     DietActivity,
     DietPreference,
     EcoPointActivity,
+    Tenant,
     UserAllergy,
     UserProfile,
 )
@@ -15,11 +16,15 @@ from .models import (
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
     ordering = ("email",)
-    list_display = ("email", "first_name", "is_staff", "is_active")
+    list_display = ("email", "first_name", "account_type", "is_staff", "is_active")
+    list_filter = ("account_type", "is_staff", "is_superuser", "is_active")
     search_fields = ("email", "first_name")
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        ("Personal info", {"fields": ("first_name", "last_name")}),
+        (
+            "Personal info",
+            {"fields": ("first_name", "last_name", "account_type")},
+        ),
         (
             "Permissions",
             {
@@ -37,10 +42,12 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = (
         (None, {"classes": ("wide",), "fields": ("email", "password1", "password2")}),
     )
+    readonly_fields = ("account_type",)
 
 
 admin.site.register(DietPreference)
 admin.site.register(UserProfile)
+admin.site.register(Tenant)
 admin.site.register(UserAllergy)
 admin.site.register(EcoPointActivity)
 admin.site.register(DietActivity)

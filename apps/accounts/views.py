@@ -9,11 +9,14 @@ from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_GET, require_POST
 
+from .decorators import customer_required, tenant_required
 from .forms import (
     EmailAuthenticationForm,
     PhotoUploadForm,
     ProfileForm,
     RegistrationForm,
+    TenantProfileForm,
+    TenantRegistrationForm,
 )
 from .models import DietPreference, UserAllergy
 from .selectors import (
@@ -24,15 +27,19 @@ from .selectors import (
     get_profile_for_user,
     get_recommendations,
     get_selected_diet_codes,
+    get_tenant_for_user,
 )
 from .services import (
     add_allergy,
     delete_allergy,
+    register_tenant,
     register_user,
     reset_eco_points,
     toggle_diet,
     update_profile,
     update_profile_photo,
+    update_tenant,
+    update_tenant_photo,
 )
 
 
@@ -52,6 +59,14 @@ def _account_context(user, profile_form=None):
     context = get_account_dashboard(profile)
     context["profile_form"] = profile_form or ProfileForm(instance=profile, user=user)
     return context
+
+
+def _tenant_context(user, tenant_form=None):
+    tenant = get_tenant_for_user(user)
+    return {
+        "tenant": tenant,
+        "tenant_form": tenant_form or TenantProfileForm(instance=tenant, user=user),
+    }
 
 
 def _with_toast(response, message, level):
@@ -80,6 +95,24 @@ def register(request):
     return render(request, "accounts/register.html", {"form": form})
 
 
+def register_tenant_view(request):
+    if request.user.is_authenticated:
+        return redirect("accounts:accounts")
+    form = TenantRegistrationForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        user = register_tenant(
+            tenant_name=form.cleaned_data["tenant_name"],
+            full_name=form.cleaned_data["full_name"],
+            email=form.cleaned_data["email"],
+            phone_number=form.cleaned_data["phone_number"],
+            password=form.cleaned_data["password1"],
+        )
+        login(request, user)
+        messages.success(request, "Akun tenan berhasil dibuat.")
+        return redirect("accounts:accounts")
+    return render(request, "accounts/register_tenant.html", {"form": form})
+
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("accounts:accounts")
@@ -106,10 +139,16 @@ def logout_view(request):
 
 @login_required
 def accounts(request):
+    if request.user.is_tenant:
+        return render(
+            request,
+            "accounts/tenant_account.html",
+            _tenant_context(request.user),
+        )
     return render(request, "accounts/accounts.html", _account_context(request.user))
 
 
-@login_required
+@customer_required
 @require_POST
 def update_profile_view(request):
     profile = get_profile_for_user(request.user)
@@ -152,7 +191,56 @@ def update_profile_view(request):
     return redirect("accounts:accounts")
 
 
-@login_required
+@tenant_required
+@require_POST
+def update_tenant_view(request):
+    tenant = get_tenant_for_user(request.user)
+    form = TenantProfileForm(
+        request.POST,
+        instance=tenant,
+        user=request.user,
+    )
+    if not form.is_valid():
+        if request.htmx:
+            return _with_toast(
+                render(
+                    request,
+                    "accounts/partials/tenant_form.html",
+                    {"tenant_form": form},
+                ),
+                "Periksa kembali data yang kamu masukkan.",
+                "error",
+            )
+        messages.error(request, "Periksa kembali data yang kamu masukkan.")
+        return render(
+            request,
+            "accounts/tenant_account.html",
+            _tenant_context(request.user, tenant_form=form),
+            status=400,
+        )
+
+    update_tenant(tenant=tenant, **form.cleaned_data)
+    if request.htmx:
+        return _with_toast(
+            render(
+                request,
+                "accounts/partials/tenant_update_response.html",
+                {
+                    "tenant_form": TenantProfileForm(
+                        instance=tenant,
+                        user=tenant.owner,
+                    ),
+                    "display_name": tenant.owner.display_name,
+                },
+            ),
+            "Perubahan tersimpan.",
+            "success",
+        )
+    messages.success(request, "Perubahan tersimpan.")
+    return redirect("accounts:accounts")
+
+
+@customer_required
 @require_POST
 def toggle_diet_view(request):
     try:
@@ -172,7 +260,7 @@ def toggle_diet_view(request):
     )
 
 
-@login_required
+@customer_required
 @require_POST
 def manage_allergy(request):
     profile = get_profile_for_user(request.user)
@@ -193,7 +281,7 @@ def manage_allergy(request):
     return render(request, "accounts/partials/allergies.html", {"profile": profile})
 
 
-@login_required
+@customer_required
 @require_POST
 def upload_photo(request):
     form = PhotoUploadForm(request.POST, request.FILES)
@@ -205,7 +293,19 @@ def upload_photo(request):
     return JsonResponse({"photo_url": profile.photo.url})
 
 
-@login_required
+@tenant_required
+@require_POST
+def upload_tenant_photo(request):
+    form = PhotoUploadForm(request.POST, request.FILES)
+    if not form.is_valid():
+        error = form.errors.get("photo", ["Foto tidak valid."])[0]
+        return JsonResponse({"error": error}, status=400)
+    tenant = get_tenant_for_user(request.user)
+    update_tenant_photo(tenant=tenant, photo=form.cleaned_data["photo"])
+    return JsonResponse({"photo_url": tenant.photo.url})
+
+
+@customer_required
 @require_POST
 def reset_eco_points_view(request):
     if request.POST.get("confirm") != "on":
@@ -216,7 +316,7 @@ def reset_eco_points_view(request):
     return redirect("accounts:accounts")
 
 
-@login_required
+@customer_required
 @require_GET
 def get_recommendations_api(request):
     menus = get_recommendations(get_profile_for_user(request.user))
