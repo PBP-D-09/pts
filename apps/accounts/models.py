@@ -31,13 +31,39 @@ class UserManager(BaseUserManager):
 
 
 class CustomUser(AbstractUser):
+    class AccountType(models.TextChoices):
+        CUSTOMER = "customer", "Pelanggan"
+        TENANT = "tenant", "Tenan"
+
     username = None
     email = models.EmailField("email address", unique=True)
+    account_type = models.CharField(
+        max_length=20,
+        choices=AccountType.choices,
+        default=AccountType.CUSTOMER,
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     objects = UserManager()
+
+    @property
+    def is_customer(self):
+        return self.account_type == self.AccountType.CUSTOMER
+
+    @property
+    def is_tenant(self):
+        return self.account_type == self.AccountType.TENANT
+
+    @property
+    def display_name(self):
+        if self.is_tenant:
+            try:
+                return self.tenant.name or self.first_name or self.email
+            except Tenant.DoesNotExist:
+                pass
+        return self.first_name or self.email
 
     def __str__(self):
         return self.email
@@ -79,6 +105,23 @@ class UserProfile(Model):
 
     def __str__(self):
         return f"Profil {self.user.email}"
+
+
+class Tenant(Model):
+    owner = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="tenant",
+    )
+    name = models.CharField(max_length=150)
+    phone_number = models.CharField(max_length=30)
+    photo = models.ImageField(upload_to="tenants/", blank=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
 
 
 class UserAllergy(Model):
@@ -139,5 +182,5 @@ class DietActivity(Model):
 
 @receiver(post_save, sender=CustomUser)
 def create_user_profile(sender, instance, created, **kwargs):
-    if created:
+    if created and instance.is_customer:
         UserProfile.objects.create(user=instance)

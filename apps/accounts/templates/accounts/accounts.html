@@ -19,12 +19,12 @@
               {% if profile.photo %}
                 <img id="profile-photo"
                      src="{{ profile.photo.url }}"
-                     alt="Foto profil {{ request.user.first_name }}"
+                     alt="Foto profil {{ request.user.display_name }}"
                      class="size-full object-cover">
               {% else %}
                 <span id="profile-icon">{% lucide "user-round" size=48 stroke_width=1.6 %}</span>
                 <img id="profile-photo"
-                     alt="Foto profil {{ request.user.first_name }}"
+                     alt="Foto profil {{ request.user.display_name }}"
                      class="hidden size-full object-cover">
               {% endif %}
             </div>
@@ -41,7 +41,7 @@
                  class="hidden">
           <p id="account-profile-name"
              class="text-h5 mt-2 text-center text-primary-100">
-            {{ request.user.first_name|default:request.user.email }}
+            {{ request.user.display_name }}
           </p>
           <div class="mt-4.5">
             <div class="flex items-center justify-between">

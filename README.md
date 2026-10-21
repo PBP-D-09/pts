@@ -18,13 +18,14 @@ SustainaBowl hadir sebagai platform healthy meal ordering platform yang menginte
 ### accounts
 manajemen user (bisa tambahin preferensi diet), sistem akumulasi poin ramah lingkungan (Eco Points) untuk user dan memberikan plan makanan yang sesuai.
 
-* custom User Model (Auth Login/Register).
+* custom User Model (Auth Login/Register) untuk akun pelanggan dan tenan.
 * profile preferensi diet (Vegan, Vegetarian, Low Carb, Keto, Allergies).
+* profil tenan dengan identitas, gambar restoran, dan akun pengelola yang terpisah dari pelanggan.
 
 **Anggota Bertanggungjawab: Joachim Susatiyo**
 
 #### Requirements
-* Create: Pendaftaran akun baru, pembuatan profil user, dan inisialisasi preferensi diet (Vegan, Keto, dll).
+* Create: Pendaftaran akun pelanggan atau tenan, pembuatan profil user, dan inisialisasi preferensi diet (Vegan, Keto, dll).
 * Read: Menampilkan profil pribadi, statistik akumulasi Eco Points, serta riwayat aktivitas diet harian.
 * Update: Memperbarui data diri, informasi kontak, preferensi diet, dan foto profil.
 * Delete: Menghapus preferensi diet tertentu atau mereset statistik poin pribadi.

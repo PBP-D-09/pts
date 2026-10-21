@@ -7,9 +7,16 @@ app_name = "accounts"
 urlpatterns = [
     path("", views.accounts, name="accounts"),
     path("register/", views.register, name="register"),
+    path("register/tenant/", views.register_tenant_view, name="register_tenant"),
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
     path("profile/", views.update_profile_view, name="update_profile"),
+    path("tenant/profile/", views.update_tenant_view, name="update_tenant"),
+    path(
+        "tenant/profile/photo/",
+        views.upload_tenant_photo,
+        name="upload_tenant_photo",
+    ),
     path("profile/photo/", views.upload_photo, name="upload_photo"),
     path("preferences/diets/", views.toggle_diet_view, name="toggle_diet"),
     path("preferences/allergies/", views.manage_allergy, name="manage_allergy"),

@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.utils import timezone
 
-from .models import CustomUser, DietActivity, EcoPointActivity, UserAllergy
+from .models import CustomUser, DietActivity, EcoPointActivity, Tenant, UserAllergy
 
 
 @transaction.atomic
@@ -11,6 +11,22 @@ def register_user(*, full_name, email, password):
         password=password,
         first_name=full_name.strip(),
     )
+
+
+@transaction.atomic
+def register_tenant(*, tenant_name, full_name, email, phone_number, password):
+    user = CustomUser.objects.create_user(
+        email=email.lower(),
+        password=password,
+        first_name=full_name.strip(),
+        account_type=CustomUser.AccountType.TENANT,
+    )
+    Tenant.objects.create(
+        owner=user,
+        name=tenant_name.strip(),
+        phone_number=phone_number.strip(),
+    )
+    return user
 
 
 @transaction.atomic
@@ -30,6 +46,19 @@ def update_profile(*, profile, full_name, email, birth_date, phone_number):
         summary="Data profil diperbarui.",
     )
     return profile
+
+
+@transaction.atomic
+def update_tenant(*, tenant, name, full_name, email, phone_number):
+    user = tenant.owner
+    user.first_name = full_name.strip()
+    user.email = email.lower()
+    user.save(update_fields=["first_name", "email"])
+
+    tenant.name = name.strip()
+    tenant.phone_number = phone_number.strip()
+    tenant.save(update_fields=["name", "phone_number"])
+    return tenant
 
 
 @transaction.atomic
@@ -90,6 +119,17 @@ def update_profile_photo(*, profile, photo):
     if old_name and old_name != profile.photo.name:
         transaction.on_commit(lambda: profile.photo.storage.delete(old_name))
     return profile
+
+
+@transaction.atomic
+def update_tenant_photo(*, tenant, photo):
+    old_name = tenant.photo.name if tenant.photo else ""
+    storage = tenant.photo.storage
+    tenant.photo = photo
+    tenant.save(update_fields=["photo"])
+    if old_name and old_name != tenant.photo.name:
+        transaction.on_commit(lambda: storage.delete(old_name))
+    return tenant
 
 
 @transaction.atomic
