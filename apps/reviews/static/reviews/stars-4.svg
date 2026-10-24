@@ -1,0 +1,42 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="116" height="20" viewBox="0 0 116 20" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="Stars &#226;&#128;&#148; 4 out of 5">
+<g id="Star 1 &#226;&#128;&#148; Selected">
+<use xlink:href="#stroke0_0_539" fill="#E9A11B"/>
+<mask id="stroke1_0_539" fill="white">
+<use xlink:href="#stroke0_0_539"/>
+</mask>
+<path d="M10 0L12.7038 6.27852L19.5106 6.90983L14.3749 11.4215L15.8779 18.0902L10 14.6L4.12215 18.0902L5.62514 11.4215L0.489435 6.90983L7.29619 6.27852L10 0Z" stroke-width="2.4" stroke="#E9A11B" mask="url(#stroke1_0_539)"/>
+</g>
+<g id="Star 2 &#226;&#128;&#148; Selected">
+<use xlink:href="#stroke2_0_539" fill="#E9A11B"/>
+<mask id="stroke3_0_539" fill="white">
+<use xlink:href="#stroke2_0_539"/>
+</mask>
+<path d="M34 0L36.7038 6.27852L43.5106 6.90983L38.3749 11.4215L39.8779 18.0902L34 14.6L28.1221 18.0902L29.6251 11.4215L24.4894 6.90983L31.2962 6.27852L34 0Z" stroke-width="2.4" stroke="#E9A11B" mask="url(#stroke3_0_539)"/>
+</g>
+<g id="Star 3 &#226;&#128;&#148; Selected">
+<use xlink:href="#stroke4_0_539" fill="#E9A11B"/>
+<mask id="stroke5_0_539" fill="white">
+<use xlink:href="#stroke4_0_539"/>
+</mask>
+<path d="M58 0L60.7038 6.27852L67.5106 6.90983L62.3749 11.4215L63.8779 18.0902L58 14.6L52.1221 18.0902L53.6251 11.4215L48.4894 6.90983L55.2962 6.27852L58 0Z" stroke-width="2.4" stroke="#E9A11B" mask="url(#stroke5_0_539)"/>
+</g>
+<g id="Star 4 &#226;&#128;&#148; Selected">
+<use xlink:href="#stroke6_0_539" fill="#E9A11B"/>
+<mask id="stroke7_0_539" fill="white">
+<use xlink:href="#stroke6_0_539"/>
+</mask>
+<path d="M82 0L84.7038 6.27852L91.5106 6.90983L86.3749 11.4215L87.8779 18.0902L82 14.6L76.1221 18.0902L77.6251 11.4215L72.4894 6.90983L79.2962 6.27852L82 0Z" stroke-width="2.4" stroke="#E9A11B" mask="url(#stroke7_0_539)"/>
+</g>
+<mask id="stroke8_0_539" fill="white">
+<path d="M106 0L108.704 6.27852L115.511 6.90983L110.375 11.4215L111.878 18.0902L106 14.6L100.122 18.0902L101.625 11.4215L96.4894 6.90983L103.296 6.27852L106 0Z"/>
+</mask>
+<path id="Star 5 &#226;&#128;&#148; Empty" d="M106 0L108.704 6.27852L115.511 6.90983L110.375 11.4215L111.878 18.0902L106 14.6L100.122 18.0902L101.625 11.4215L96.4894 6.90983L103.296 6.27852L106 0Z" stroke-width="2.4" stroke="#63706C" mask="url(#stroke8_0_539)"/>
+</g>
+<defs>
+<path id="stroke0_0_539" d="M10 0L12.7038 6.27852L19.5106 6.90983L14.3749 11.4215L15.8779 18.0902L10 14.6L4.12215 18.0902L5.62514 11.4215L0.489435 6.90983L7.29619 6.27852L10 0Z"/>
+<path id="stroke2_0_539" d="M34 0L36.7038 6.27852L43.5106 6.90983L38.3749 11.4215L39.8779 18.0902L34 14.6L28.1221 18.0902L29.6251 11.4215L24.4894 6.90983L31.2962 6.27852L34 0Z"/>
+<path id="stroke4_0_539" d="M58 0L60.7038 6.27852L67.5106 6.90983L62.3749 11.4215L63.8779 18.0902L58 14.6L52.1221 18.0902L53.6251 11.4215L48.4894 6.90983L55.2962 6.27852L58 0Z"/>
+<path id="stroke6_0_539" d="M82 0L84.7038 6.27852L91.5106 6.90983L86.3749 11.4215L87.8779 18.0902L82 14.6L76.1221 18.0902L77.6251 11.4215L72.4894 6.90983L79.2962 6.27852L82 0Z"/>
+</defs>
+</svg>

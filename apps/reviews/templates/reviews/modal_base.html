@@ -1,0 +1,5 @@
+{% load static tailwind_tags %}
+
+{% if not request.headers.X_Reviews_Request %}<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Reviews · SustainaBowl</title>{% tailwind_css %}<link rel="stylesheet" href="{% static 'reviews/reviews.css' %}"></head><body class="reviews-standalone"><main class="reviews-dialog">{% endif %}
+{% block modal_content %}{% endblock %}
+{% if not request.headers.X_Reviews_Request %}<p><a href="{% if review %}{% url 'reviews:menu' review.menu_key %}{% else %}{% url 'reviews:menu' menu.key %}{% endif %}">Back to reviews</a></p></main></body></html>{% endif %}

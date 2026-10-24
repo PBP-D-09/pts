@@ -1,0 +1,34 @@
+{% load static lucide review_tags %}
+
+<span hidden data-review-total="{{ summary.total }}"></span>
+{% if summary.total %}
+  <section class="ui-panel reviews-summary" aria-label="Rating summary">
+    <div class="reviews-overall"><strong>{{ summary.overall|floatformat:1 }}</strong><img src="{% static summary.overall|star_asset %}"
+     width="116"
+     height="20"
+     alt="{{ summary.overall|floatformat:1 }} out of 5 stars"><small class="reviews-muted">{{ summary.total }} reviews</small></div>
+    <div class="reviews-averages"><p><b>Food Taste</b><strong>{{ summary.food|floatformat:1 }} / 5</strong></p><p><b>Sustainable Packaging</b><strong>{{ summary.packaging|floatformat:1 }} / 5</strong></p><small>{% lucide 'leaf' size=16 %} Small choices. Better meals.</small></div>
+    <div class="reviews-distribution"><b>Rating breakdown</b>{% for stars,count,percent in summary.distribution %}<div><span>{{ stars }} ★</span><meter min="0"
+       max="100"
+       value="{{ percent }}"
+       aria-label="{{ stars }} stars: {{ count }} reviews"></meter><span>{{ count }}</span></div>{% endfor %}</div>
+  </section>
+  <form id="reviews-filters" method="get" class="reviews-filters">
+    <div class="reviews-filter-row">{% for field in filter_form %}<label><span>{{ field.label }}</span>{{ field }}</label>{% endfor %}</div>
+    <noscript>
+      <button class="ui-button reviews-primary" type="submit">Apply Filters</button>
+    </noscript>
+  </form>
+  <div class="reviews-status"><span>Showing {{ page.start_index }}–{{ page.end_index }} of {{ page.paginator.count }}{% if active_filters %} matching{% endif %} reviews</span><small>Reviews are visible to everyone</small></div>
+  {% if active_filters %}<div class="reviews-active">{% for label,url in active_filters %}<a class="ui-chip" href="{{ url }}" data-filter-link>{{ label }} <span aria-label="Remove filter">×</span></a>{% endfor %}<a href="?" data-filter-link class="ui-button reviews-secondary">Clear Filters</a></div>{% endif %}
+{% endif %}
+<div id="review-list" class="reviews-list">
+  {% for review in page %}
+    {% include "reviews/partials/card.html" %}
+  {% empty %}
+    <section class="ui-panel reviews-empty">{% if summary.total %}{% lucide 'circle-alert' size=32 %}<h2>No reviews match your filters</h2><p class="reviews-muted">Try changing or clearing your current filters.</p><a href="?" data-filter-link class="ui-button reviews-secondary">Clear Filters</a>{% else %}{% lucide 'message-square' size=32 %}<h2>No reviews yet</h2><p class="reviews-muted">Be the first to share your experience with this meal and its sustainable packaging.</p>{% if not user.is_authenticated or user.is_customer %}<button type="button" data-write class="ui-button reviews-primary">Write the First Review</button>{% endif %}{% endif %}</section>
+  {% endfor %}
+</div>
+<div id="reviews-pagination" class="reviews-pagination">{% if next_url %}<a href="{{ next_url }}"
+   data-load-more
+   class="ui-button reviews-secondary">Load More Reviews</a>{% endif %}{% if summary.total %}<small class="reviews-muted">{% if filter_form.sort.value == "helpful" %}Showing the most helpful reviews first{% elif filter_form.sort.value == "oldest" %}Showing the oldest reviews first{% elif filter_form.sort.value == "highest" %}Showing the highest ratings first{% else %}Showing the latest reviews first{% endif %}</small>{% endif %}</div>

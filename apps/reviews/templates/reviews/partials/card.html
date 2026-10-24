@@ -1,0 +1,25 @@
+{% load static lucide review_tags %}
+
+<article class="ui-panel reviews-card" id="review-{{ review.pk }}">
+  <header><div class="reviews-identity"><span class="reviews-avatar">{{ review.initials }}</span><div><b>{% if user.pk == review.author_id %}You • {% endif %}{{ review.author.display_name }}</b><small class="reviews-muted">{{ review.created_at|date:'j F Y' }}{% if review.updated_at|date:"U" != review.created_at|date:"U" %} · Updated {{ review.updated_at|date:'j F Y' }}{% endif %}</small></div></div><div class="reviews-owner">{% if user.pk == review.author_id %}<a href="{% url 'reviews:edit' review.pk %}" data-modal>{% lucide 'pencil' size=14 %} Edit</a><a class="reviews-danger"
+   href="{% url 'reviews:delete' review.pk %}"
+   data-modal>{% lucide 'trash-2' size=14 %} Delete</a>{% else %}<small class="reviews-muted">Published review</small>{% endif %}</div></header>
+  <div class="reviews-ratings"><div><b>Food Taste</b><p><img src="{% static review.food_rating|star_asset %}"
+     width="116"
+     height="20"
+     alt="{{ review.food_rating }} out of 5 stars"><strong>{{ review.food_rating }}.0</strong></p></div><div><b>Sustainable Packaging</b><p><img src="{% static review.packaging_rating|star_asset %}"
+     width="116"
+     height="20"
+     alt="{{ review.packaging_rating }} out of 5 stars"><strong>{{ review.packaging_rating }}.0</strong></p></div></div>
+  <div class="reviews-card-body"><div><p class="reviews-text">{{ review.text|linebreaksbr }}</p>{% if review.packaging_type %}<span class="ui-tag reviews-packaging">{% lucide 'leaf' size=14 %} {{ review.get_packaging_type_display }}</span>{% endif %}</div>{% if review.photo %}<a href="{{ review.photo.url }}" target="_blank" rel="noopener"><img class="reviews-photo"
+     src="{{ review.photo.url }}"
+     alt="Food photo shared by {{ review.author.display_name }}"
+     loading="lazy"
+     width="240"
+     height="132"></a>{% endif %}</div>
+  <footer><form action="{% url 'reviews:helpful' review.pk %}"
+      method="post"
+      data-helpful>{% csrf_token %}<button class="ui-button reviews-secondary reviews-helpful{% if review.voted %} is-selected{% endif %}"
+        aria-pressed="{{ review.voted|yesno:'true,false' }}"
+        type="submit">{% lucide 'thumbs-up' size=16 %} <span>Helpful {{ review.helpful_count }}</span></button></form><small class="reviews-muted">Was this review helpful?</small></footer>
+</article>
