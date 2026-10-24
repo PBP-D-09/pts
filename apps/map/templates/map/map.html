@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% load static lucide %}
+
+{% block title %}Peta Tenan | SustainaBowl{% endblock %}
+{% block description %}Temukan tenan makanan sehat SustainaBowl di sekitarmu lewat peta OpenStreetMap.{% endblock %}
+{% block meta %}
+  <link rel="stylesheet" href="{% static 'map/vendor/leaflet/leaflet.css' %}">
+  <link rel="stylesheet" href="{% static 'map/map.css' %}">
+{% endblock %}
+{% block content %}
+  <main class="bg-surface-canvas px-5 py-8 sm:px-8 lg:px-16 lg:pb-16"
+        data-map-page="tenants"
+        data-reverse-url="{% url 'map:reverse_api' %}">
+    <div class="mx-auto max-w-328">
+      <section class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-s9 uppercase tracking-widest text-tertiary-70">Explore the neighborhood</p>
+          <h1 class="text-h4 mt-1 text-primary-100">Temukan tenant di sekitarmu</h1>
+          <p class="text-b8 mt-1 max-w-xl text-neutral-70">
+            Pilihan makanan baik, lebih dekat. Jelajahi peta dan temukan alamat tenant favoritmu.
+          </p>
+        </div>
+        {% if user.is_authenticated %}
+          {% url 'map:addresses' as addresses_url %}
+          {% include "components/button.html" with href=addresses_url label="Alamat Saya" variant="secondary" icon_left="house" %}
+        {% endif %}
+      </section>
+      <section class="ui-panel mt-6 grid gap-4 p-4 sm:p-5">
+        <form id="tenant-filter-form"
+              method="get"
+              action="{% url 'map:map' %}"
+              hx-get="{% url 'map:map' %}"
+              hx-target="#tenant-results"
+              hx-swap="innerHTML"
+              hx-push-url="true"
+              hx-trigger="change, submit, input from:#tenant-query delay:400ms"
+              class="grid gap-4">
+          <input type="hidden" name="lat" value="{{ filters.lat|default_if_none:'' }}">
+          <input type="hidden" name="lng" value="{{ filters.lng|default_if_none:'' }}">
+          <div class="relative">
+            <label for="tenant-query" class="sr-only">Cari nama tenant atau alamat</label>
+            <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-60">{% lucide "search" size=18 stroke_width=2 %}</span>
+            <input id="tenant-query"
+                   type="search"
+                   name="q"
+                   value="{{ filters.q|default:'' }}"
+                   placeholder="Cari nama tenant atau alamat..."
+                   class="ui-input pl-10">
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <label class="sr-only" for="filter-category">Kategori makanan</label>
+            <select id="filter-category" name="category" class="ui-chip bg-neutral-10">
+              <option value="">Kategori makanan</option>
+              {% for value, label in categories %}
+                <option value="{{ value }}"
+                        {% if filters.category == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <label class="sr-only" for="filter-city">Kota</label>
+            <select id="filter-city" name="city" class="ui-chip bg-neutral-10">
+              <option value="">Semua kota</option>
+              {% for city in cities %}
+                <option value="{{ city }}" {% if filters.city == city %}selected{% endif %}>{{ city }}</option>
+              {% endfor %}
+            </select>
+            <label class="sr-only" for="filter-radius">Radius</label>
+            <select id="filter-radius" name="radius" class="ui-chip bg-neutral-10">
+              <option value="">Semua jarak</option>
+              {% for value, label in radius_choices %}
+                <option value="{{ value }}"
+                        {% if filters.radius == value %}selected{% endif %}>Radius {{ label }}</option>
+              {% endfor %}
+            </select>
+            <label class="ui-chip flex cursor-pointer items-center gap-2 has-checked:border-primary-70 has-checked:bg-primary-70 has-checked:text-neutral-10">
+              <input type="checkbox"
+                     name="open_now"
+                     class="sr-only"
+                     {% if filters.open_now %}checked{% endif %}>
+              {% lucide "clock" size=16 stroke_width=2 %} Tersedia sekarang
+            </label>
+            <a href="{% url 'map:map' %}" class="ui-text-link text-s8 ml-1">Reset</a>
+          </div>
+        </form>
+        <div class="flex flex-col gap-2 border-t border-border-subtle pt-4 sm:flex-row sm:items-center">
+          {% include "map/partials/search_box.html" with input_id="location-query" placeholder="Urutkan dari lokasi... (mis. Menteng)" results_id="location-results" class_name="flex-1" %}
+          <div class="flex gap-2">
+            <button type="button"
+                    id="use-my-location"
+                    class="ui-button ui-button--secondary text-s8 min-h-0 px-3 py-2">
+              {% lucide "locate-fixed" size=18 stroke_width=2 %} Lokasiku
+            </button>
+            <button type="button"
+                    id="clear-location"
+                    class="ui-button ui-button--tertiary text-s8 min-h-0 px-3 py-2">
+              {% lucide "rotate-ccw" size=18 stroke_width=2 %} Hapus titik
+            </button>
+          </div>
+        </div>
+      </section>
+      <section class="mt-6 grid gap-5 lg:grid-cols-[380px_minmax(0,1fr)]">
+        <div id="tenant-results"
+             class="order-2 max-h-140 overflow-y-auto pr-1 lg:order-1 lg:max-h-160">
+          {% include "map/partials/tenant_results.html" %}
+        </div>
+        <div class="order-1 lg:order-2">
+          <div class="ui-panel h-90 overflow-hidden p-1 sm:h-120 lg:sticky lg:top-28 lg:h-160">
+            <div id="tenant-map"
+                 class="sb-map"
+                 role="region"
+                 aria-label="Peta lokasi tenant"></div>
+          </div>
+          <p class="text-b9 mt-2 text-neutral-60">
+            Peta © OpenStreetMap contributors. Jarak dihitung garis lurus dari titik yang kamu pilih atau dari Jakarta Pusat.
+          </p>
+        </div>
+      </section>
+      {% if not user.is_authenticated %}
+        <section class="ui-panel mt-6 flex flex-col gap-3 bg-secondary-10 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-h7 text-primary-100">Simpan alamat pengirimanmu</h2>
+            <p class="text-b8 text-neutral-70">Login untuk melihat kontak tenant dan menyimpan titik alamat pengiriman di peta.</p>
+          </div>
+          {% url 'accounts:login' as login_url %}
+          {% include "components/button.html" with href=login_url label="Login" %}
+        </section>
+      {% endif %}
+    </div>
+  </main>
+  <script src="{% static 'django_htmx/htmx-2.min.js' %}" defer></script>
+  <script src="{% static 'map/vendor/leaflet/leaflet.js' %}" defer></script>
+  <script src="{% static 'map/map.js' %}" defer></script>
+{% endblock %}

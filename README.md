@@ -84,7 +84,9 @@ integrasi peta open street map, dan tenan alamat pada map
 * integrasi Leaflet.js di frontend untuk menampilkan peta.
 * menampilkan lokasi tenan.
 
-API: OpenStreetMap (untuk menampilkan peta open source [link](https://www.openstreetmap.org))
+API: OpenStreetMap (untuk menampilkan peta open source [link](https://www.openstreetmap.org)) dan [Nominatim](https://nominatim.org/release-docs/latest/api/Overview/) (pencarian alamat & reverse geocoding, dipanggil lewat server Django dengan cache 24 jam).
+
+Halaman: `/map/` (peta tenan, publik), `/map/addresses/` (alamat pengiriman, wajib login), `/map/tenant/location/` (lokasi tenan, khusus akun tenan). Endpoint JSON: `/map/api/tenants/`, `/map/api/addresses/`, `/map/api/search/?q=`, `/map/api/reverse/?lat=&lng=`. Data contoh lokasi tenan: `python manage.py seed_map`.
 
 **Anggota Bertanggungjawab: Awiddy Munaya Rajanadoli**
 

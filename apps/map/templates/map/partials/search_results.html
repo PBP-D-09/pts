@@ -1,0 +1,28 @@
+{% load lucide %}
+
+{% if too_short %}
+  <p class="ui-panel text-b9 px-3 py-2 text-neutral-70">Ketik minimal 3 huruf untuk mencari.</p>
+{% elif error %}
+  <p class="ui-panel text-b9 px-3 py-2 text-red-70">{{ error }}</p>
+{% elif query %}
+  <ul class="ui-panel max-h-72 overflow-y-auto p-1" role="listbox">
+    {% for place in places %}
+      <li>
+        <button type="button"
+                class="flex w-full items-start gap-2 rounded px-3 py-2 text-left hover:bg-secondary-10"
+                data-place-lat="{{ place.latitude }}"
+                data-place-lng="{{ place.longitude }}"
+                data-place-name="{{ place.display_name }}">
+          <span class="mt-0.5 text-primary-70">{% lucide "map-pin" size=16 stroke_width=2 %}</span>
+          <span>
+            <span class="text-s8 block text-primary-100">{{ place.name }}</span>
+            <span class="text-b9 block text-neutral-70">{{ place.display_name }}</span>
+          </span>
+        </button>
+      </li>
+    {% empty %}
+      <li class="text-b9 px-3 py-2 text-neutral-70">Tidak ada hasil untuk "{{ query }}".</li>
+    {% endfor %}
+  </ul>
+  <p class="text-b9 mt-1 text-right text-neutral-60">Data © OpenStreetMap contributors</p>
+{% endif %}

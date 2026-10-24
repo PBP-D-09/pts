@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% load static lucide %}
+
+{% block title %}Lokasi Tenan | SustainaBowl{% endblock %}
+{% block meta %}
+  <link rel="stylesheet" href="{% static 'map/vendor/leaflet/leaflet.css' %}">
+  <link rel="stylesheet" href="{% static 'map/map.css' %}">
+{% endblock %}
+{% block content %}
+  <main class="bg-surface-canvas px-5 py-8 sm:px-8 lg:px-16 lg:pb-16"
+        data-map-page="tenant-location"
+        data-reverse-url="{% url 'map:reverse_api' %}">
+    <div class="mx-auto max-w-328">
+      <section>
+        <p class="text-s9 uppercase tracking-widest text-tertiary-70">Akun Tenan</p>
+        <h1 class="text-h4 mt-1 text-primary-100">Lokasi {{ tenant.name }}</h1>
+        <p class="text-b8 mt-1 max-w-xl text-neutral-70">
+          Atur titik lokasi, jam operasional, dan radius pengiriman supaya pelanggan bisa menemukan tenanmu di peta.
+        </p>
+      </section>
+      <section class="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_440px]">
+        <div>
+          {% include "map/partials/search_box.html" with input_id="location-search" placeholder="Cari alamat tenan..." results_id="location-search-results" %}
+          <div class="ui-panel mt-3 h-90 overflow-hidden p-1 sm:h-120">
+            <div id="location-map"
+                 class="sb-map"
+                 role="region"
+                 aria-label="Peta lokasi tenan"></div>
+          </div>
+          <p class="text-b9 mt-2 text-neutral-60">Klik peta atau seret pin merah. Peta © OpenStreetMap contributors.</p>
+        </div>
+        <div class="ui-panel p-5">
+          <h2 class="text-h6 text-primary-100">
+            {% if location %}
+              Ubah lokasi
+            {% else %}
+              Tambahkan lokasi
+            {% endif %}
+          </h2>
+          <form method="post"
+                action="{% url 'map:tenant_location' %}"
+                class="mt-4 grid gap-3 sm:grid-cols-2">
+            {% csrf_token %}
+            {% include "components/form_field.html" with field=location_form.address class_name="sm:col-span-2" %}
+            {% include "components/form_field.html" with field=location_form.district %}
+            {% include "components/form_field.html" with field=location_form.city %}
+            {% include "components/form_field.html" with field=location_form.category class_name="sm:col-span-2" %}
+            {% include "components/form_field.html" with field=location_form.opening_time %}
+            {% include "components/form_field.html" with field=location_form.closing_time %}
+            {% include "components/form_field.html" with field=location_form.delivery_radius_km class_name="sm:col-span-2" %}
+            {% include "components/form_field.html" with field=location_form.latitude %}
+            {% include "components/form_field.html" with field=location_form.longitude %}
+            <div class="mt-1 sm:col-span-2">
+              {% include "components/button.html" with label="Simpan lokasi" button_type="submit" icon_left="check" %}
+            </div>
+          </form>
+          {% if location %}
+            <form method="post"
+                  action="{% url 'map:tenant_location_delete' %}"
+                  class="mt-4 border-t border-border-subtle pt-4"
+                  onsubmit="return confirm('Hapus lokasi tenan dari peta?');">
+              {% csrf_token %}
+              {% include "components/button.html" with label="Hapus dari peta" button_type="submit" variant="danger" icon_left="trash-2" %}
+            </form>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+    {{ center|json_script:"location-center" }}
+  </main>
+  <script src="{% static 'django_htmx/htmx-2.min.js' %}" defer></script>
+  <script src="{% static 'map/vendor/leaflet/leaflet.js' %}" defer></script>
+  <script src="{% static 'map/map.js' %}" defer></script>
+{% endblock %}
