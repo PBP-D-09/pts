@@ -37,6 +37,7 @@ urlpatterns = [
     path("", include("apps.landing.urls")),
     path("accounts/", include("apps.accounts.urls")),
     path("design-system/", include("apps.designsystem.urls")),
+    path("catalog/", include("apps.catalog.urls")),
 ]
 
 if not settings.PRODUCTION:

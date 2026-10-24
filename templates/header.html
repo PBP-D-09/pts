@@ -2,6 +2,7 @@
 
 {% url 'accounts:login' as login_url %}
 {% url 'accounts:accounts' as accounts_url %}
+{% url 'catalog:show_catalog' as catalog_url %}
 <header class="sticky top-0 z-30 border-b border-tertiary-10 bg-neutral-10/95 backdrop-blur">
   <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:h-22 lg:px-14">
     <a class="text-h5 text-primary-80"
@@ -10,7 +11,7 @@
          aria-label="Navigasi utama">
       <a href="{% url 'landing:landing' %}"
          class="flex items-center gap-1.5 hover:text-primary-80">{% lucide "house" size=20 stroke_width=2 %} Home</a>
-      <a href="{% url 'landing:landing' %}#manfaat"
+      <a href="{{ catalog_url }}"
          class="flex items-center gap-1.5 hover:text-primary-80">{% lucide "salad" size=20 stroke_width=2 %} Catalog</a>
       <a href="{% url 'landing:landing' %}#tentang"
          class="flex items-center gap-1.5 hover:text-primary-80">{% lucide "store" size=20 stroke_width=2 %} Tenants</a>

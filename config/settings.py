@@ -23,7 +23,7 @@ load_dotenv()  # Load from .env
 SECRET_KEY = os.getenv(
     "DJANGO_SECRET_KEY", "django-insecure-!@#your-secret-key-here!@#"
 )
-DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "true"
+DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
 ALLOWED_HOSTS = [
     host.strip() for host in os.getenv("ALLOWED_HOSTS", "").split(",") if host.strip()
 ]
