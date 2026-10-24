@@ -33,7 +33,7 @@ class UserManager(BaseUserManager):
 class CustomUser(AbstractUser):
     class AccountType(models.TextChoices):
         CUSTOMER = "customer", "Pelanggan"
-        TENANT = "tenant", "Tenan"
+        TENANT = "tenant", "Tenant"
 
     username = None
     email = models.EmailField("email address", unique=True)
@@ -116,6 +116,7 @@ class Tenant(Model):
     name = models.CharField(max_length=150)
     phone_number = models.CharField(max_length=30)
     photo = models.ImageField(upload_to="tenants/", blank=True)
+    cuisines = models.ManyToManyField("catalog.tenantCuisine", related_name="tenants")
 
     class Meta:
         ordering = ["name"]
