@@ -1,0 +1,54 @@
+{% load lucide %}
+
+{% if editing %}
+  {% url 'map:address_update' editing.pk as form_action %}
+{% else %}
+  {% url 'map:address_create' as form_action %}
+{% endif %}
+<form method="post"
+      action="{{ form_action }}"
+      hx-post="{{ form_action }}"
+      hx-target="#address-panel"
+      hx-swap="innerHTML"
+      class="grid gap-3 sm:grid-cols-2">
+  {% csrf_token %}
+  <div class="sm:col-span-2">
+    <h2 class="text-h6 text-primary-100">
+      {% if editing %}
+        Ubah alamat "{{ editing.label }}"
+      {% else %}
+        Tambah alamat baru
+      {% endif %}
+    </h2>
+    <p class="text-b9 mt-1 flex items-center gap-1 text-neutral-70">
+      {% lucide "mouse-pointer-click" size=14 stroke_width=2 %}
+      Klik peta, seret pin merah, atau cari alamat untuk menentukan titik.
+    </p>
+  </div>
+  {% for error in address_form.non_field_errors %}<p class="ui-field__error sm:col-span-2">{{ error }}</p>{% endfor %}
+  {% include "components/form_field.html" with field=address_form.label %}
+  {% include "components/form_field.html" with field=address_form.recipient_name %}
+  {% include "components/form_field.html" with field=address_form.phone_number class_name="sm:col-span-2" %}
+  {% include "components/form_field.html" with field=address_form.address class_name="sm:col-span-2" %}
+  {% include "components/form_field.html" with field=address_form.landmark %}
+  {% include "components/form_field.html" with field=address_form.courier_note %}
+  {% include "components/form_field.html" with field=address_form.latitude %}
+  {% include "components/form_field.html" with field=address_form.longitude %}
+  <label class="ui-choice ui-choice--checkbox ui-choice--primary sm:col-span-2">
+    <input class="ui-choice__input"
+           type="checkbox"
+           name="{{ address_form.is_default.html_name }}"
+           {% if address_form.is_default.value %}checked{% endif %}>
+    <span class="ui-choice__control" aria-hidden="true"></span>
+    <span class="text-b8 text-neutral-90">{{ address_form.is_default.label }}</span>
+  </label>
+  <div class="mt-1 flex flex-wrap gap-2 sm:col-span-2">
+    {% if editing %}
+      {% include "components/button.html" with label="Simpan perubahan" button_type="submit" icon_left="check" %}
+      {% url 'map:addresses' as cancel_url %}
+      {% include "components/button.html" with href=cancel_url label="Batal" variant="tertiary" %}
+    {% else %}
+      {% include "components/button.html" with label="Simpan alamat" button_type="submit" icon_left="plus" %}
+    {% endif %}
+  </div>
+</form>

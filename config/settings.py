@@ -162,3 +162,13 @@ TAILWIND_APP_NAME = "apps.theme"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# OpenStreetMap Nominatim (modul map). Kebijakan Nominatim mewajibkan
+# User-Agent yang mengidentifikasi aplikasi.
+NOMINATIM_BASE_URL = os.getenv(
+    "NOMINATIM_BASE_URL", "https://nominatim.openstreetmap.org"
+).rstrip("/")
+NOMINATIM_USER_AGENT = os.getenv(
+    "NOMINATIM_USER_AGENT",
+    "SustainaBowl/1.0 (PBP Fasilkom UI; https://github.com/PBP-D-09/pts)",
+)
