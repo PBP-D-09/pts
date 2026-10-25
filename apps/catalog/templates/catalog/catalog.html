@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block meta %}
+	<title>Catalog - main</title>
+{% endblock meta %}
+{% block content %}
+<main>
+	<section>
+		<div class="flex items-center">
+			<!-- Filter button -->
+			<button type="button"
+					class="mt-2 ml-2 shrink-0 w-32 cursor-pointer rounded-full
+           			   	   border border-gray-300 bg-white
+        			   	   py-3 text-sm font-semibold text-black
+           			   	   transition-colors duration-200
+           			   	   hover:bg-gray-800 hover:text-white"
+					popovertarget="filter-modal">
+				Filter
+			</button>
+
+			<!-- Search bar -->
+			<form method="get"
+				  action="{% url 'catalog:show_catalog' %}"
+				  class="flex flex-1 justify-center">
+
+				<input type="search"
+					   id="search-input"
+					   name="title"
+					   value="{{ title_query }}"
+					   placeholder="Find restaurant"
+					   aria-label="Find restaurant by name"
+					   class="mt-2 w-xl rounded-full
+							  border border-gray-300 bg-white
+							  px-5 py-3 text-sm text-gray-900
+							  placeholder:text-gray-400
+							  outline-none transition
+							  focus:border-gray-500 focus:ring-2
+							  focus:ring-gray-200">
+			</form>
+		</div>
+
+		<div id="error" class="hidden">Gagal memuat data tenant. Silakan coba lagi.</div>
+
+		<div id="empty" class="hidden">Belum ada tenant yang menjual.</div>
+
+		<div id="grid" class="mx-auto mt-8 mb-8 grid w-full max-w-5xl grid-cols-2 items-stretch gap-6"></div>
+	</section>
+</main>
+
+{% include "catalog/components/filter_modal.html" %}
+
+<script>
+	const tenant_endpoint = "{% url 'catalog:get_tenants_json' %}";
+	const tenantCatalogUrlTemplate = "{% url 'catalog:show_catalog_tenant' tenant_id=0 %}";
+	let tenantAbortController;
+
+	const errorState = document.getElementById('error');
+	const emptyState = document.getElementById('empty');
+	const gridContainer = document.getElementById('grid');
+	const searchInput = document.getElementById('search-input');
+	let searchDebounceTimer;
+
+	function displayPageSection({showError = false, showEmpty = false, showGrid = false}) {
+		errorState.classList.toggle('hidden', !showError);
+		emptyState.classList.toggle('hidden', !showEmpty);
+		gridContainer.classList.toggle('hidden', !showGrid);
+	}
+
+	function buildTenantCardElement(item) {
+		const tenant = item.fields;
+		const tenantId = item.pk;
+
+		const card = document.createElement("article");
+
+		card.className = [
+			"group overflow-hidden rounded-2xl",
+			"bg-white border border-gray-100",
+			"shadow-sm hover:shadow-lg",
+			"transition-shadow duration-200",
+			"cursor-pointer h-100"
+		].join(" ");
+
+		card.dataset.tenantId = tenantId;
+
+		// Restaurant image
+		const imageContainer = document.createElement("div");
+      	imageContainer.className = [
+			"relative h-80 min-h-80 w-full shrink-0 overflow-hidden bg-gray-100",
+		].join(" ");
+
+      	function showPhotoPlaceholder() {
+          	const placeholder = document.createElement("div");
+          	placeholder.className = [
+              	"flex h-full w-full flex-col items-center justify-center gap-2",
+              	"bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100",
+              	"text-orange-800"
+          	].join(" ");
+
+          // Restaurant icon
+          	const icon = document.createElement("span");
+          	icon.textContent = "🍽";
+          	icon.className = "text-5xl";
+
+          	const label = document.createElement("span");
+          	label.textContent = "Restaurant";
+          	label.className = "text-sm font-semibold tracking-wide";
+
+          	placeholder.append(icon, label);
+          	imageContainer.replaceChildren(placeholder);
+    	}
+
+      	if (tenant.photo) {
+			const image = document.createElement("img");
+
+			image.src = `/media/${tenant.photo}`;
+			image.alt = tenant.name
+				? `${tenant.name} restaurant`
+				: "Restaurant photo";
+
+			image.className = [
+				"absolute inset-0 h-full w-full object-cover",
+				"transition-transform duration-300",
+				"group-hover:scale-105"
+			].join(" ");
+
+			image.loading = "eager";
+
+			image.addEventListener("error", () => {
+				console.error("Image failed to load:", image.src);
+				showPhotoPlaceholder();
+			}, { once: true });
+
+			imageContainer.appendChild(image);
+		} 
+		else {
+			showPhotoPlaceholder();
+		}
+
+		// Card content
+		const content = document.createElement("div");
+		content.className = "space-y-2 p-4";
+
+		// Restaurant name
+		const name = document.createElement("h3");
+
+		name.className = "truncate text-lg font-bold tracking-tight text-gray-900";
+
+		name.textContent = tenant.name || "Unnamed restaurant";
+
+		// Phone number
+		const phone = document.createElement("p");
+
+		phone.className = "text-sm text-gray-500";
+		phone.textContent = tenant.phone_number || "Phone not provided";
+
+		// Cuisine tags
+		const cuisineContainer = document.createElement("div");
+
+		cuisineContainer.className = "flex flex-wrap gap-2";
+
+		// Requires cuisine names to be included in your JSON response.
+		const cuisines = tenant.cuisines || [];
+
+		cuisines.forEach((cuisine) => {
+			const tag = document.createElement("span");
+
+			tag.className = [
+				"rounded-full bg-gray-100 px-3 py-1",
+				"text-xs font-medium text-gray-700"
+			].join(" ");
+
+			tag.textContent =
+				typeof cuisine === "string" ? cuisine : cuisine.name;
+
+			cuisineContainer.appendChild(tag);
+		});
+
+		content.append(name, phone, cuisineContainer);
+		card.append(imageContainer, content);
+
+		card.addEventListener("click", () => {
+    		const url = tenantCatalogUrlTemplate.replace(
+        		"/0/",
+        		`/${encodeURIComponent(tenantId)}/`
+    		);
+    		window.location.href = url;
+	});
+
+		return card;
+	}
+	
+	async function fetchTenants(searchQuery = "") {
+		if (tenantAbortController) tenantAbortController.abort();
+		tenantAbortController = new AbortController();
+
+		try {
+			const url = searchQuery ? `${tenant_endpoint}?title=${encodeURIComponent(searchQuery)}` : tenant_endpoint;
+	
+			const response = await fetch(url, {
+				headers: { 'Accept': 'application/json' },
+				signal: tenantAbortController.signal,
+			});
+
+			if (!response.ok) throw new Error('Failed to fetch data');
+
+			const tenants = await response.json();
+
+			if (tenants.length === 0) {
+				displayPageSection({ showEmpty: true });
+			}
+			else {
+				gridContainer.replaceChildren();
+				tenants.forEach((item) => {
+					gridContainer.appendChild(buildTenantCardElement(item));
+				});
+				displayPageSection({ showGrid: true });
+			}
+		}
+		catch (error) {
+			if (error.name == 'AbortError') return;
+			console.error('Error loading tenants:', error);
+			displayPageSection({ showError: true });
+		}
+	}
+
+	function searchTenants() {
+		fetchTenants(searchInput.value.trim());
+	}
+
+	searchTenants();
+</script>
+{% endblock content %}
