@@ -1,0 +1,23 @@
+{% load lucide %}
+
+{% comment %}
+  Kotak pencarian alamat (OpenStreetMap Nominatim) berbasis HTMX.
+  Parameter: input_id, placeholder, results_id.
+{% endcomment %}
+<div class="relative {{ class_name|default:'' }}">
+  <label for="{{ input_id }}" class="sr-only">{{ placeholder }}</label>
+  <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-60">{% lucide "map-pin" size=18 stroke_width=2 %}</span>
+  <input id="{{ input_id }}"
+         type="search"
+         name="q"
+         autocomplete="off"
+         placeholder="{{ placeholder }}"
+         class="ui-input pl-10"
+         hx-get="{% url 'map:search_api' %}"
+         hx-trigger="input changed delay:600ms, search"
+         hx-target="#{{ results_id }}"
+         hx-swap="innerHTML">
+  <div id="{{ results_id }}"
+       data-search-results
+       class="absolute inset-x-0 top-full z-[1100] mt-1"></div>
+</div>

@@ -1,0 +1,51 @@
+{% load lucide %}
+
+<div class="flex items-center justify-between gap-3">
+  <h2 class="text-h7 text-primary-100">Tenant terdekat</h2>
+  <span class="text-b9 text-neutral-70">{{ tenants|length }} tenant ditemukan</span>
+</div>
+<ol class="mt-3 grid gap-3">
+  {% for tenant in tenants %}
+    <li>
+      <article class="ui-panel ui-panel--compact cursor-pointer p-4 ring-primary-40 transition hover:border-primary-40"
+               data-tenant-id="{{ tenant.id }}">
+        <div class="flex items-start gap-3">
+          <span class="text-s9 grid size-7 shrink-0 place-items-center rounded-full bg-tertiary-70 text-neutral-10">{{ forloop.counter }}</span>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h3 class="text-s8 text-primary-100">{{ tenant.name }}</h3>
+                <p class="text-b9 text-neutral-70">{{ tenant.category_label }}</p>
+              </div>
+              {% if tenant.is_open_now %}
+                <span class="ui-tag bg-tertiary-10 text-tertiary-80">Buka</span>
+              {% else %}
+                <span class="ui-tag bg-red-10 text-neutral-100">Tutup</span>
+              {% endif %}
+            </div>
+            <p class="text-b9 mt-2 text-neutral-80">
+              {{ tenant.address }}{% if tenant.district %}, {{ tenant.district }}{% endif %}, {{ tenant.city }}
+            </p>
+            <div class="text-b9 mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-neutral-70">
+              <span class="inline-flex items-center gap-1">{% lucide "navigation" size=14 stroke_width=2 %} {{ tenant.distance_km|floatformat:1 }} km</span>
+              <span class="inline-flex items-center gap-1">{% lucide "clock" size=14 stroke_width=2 %} {{ tenant.opening_time }}–{{ tenant.closing_time }}</span>
+              {% if tenant.phone_number %}
+                <span class="inline-flex items-center gap-1">{% lucide "phone" size=14 stroke_width=2 %} {{ tenant.phone_number }}</span>
+              {% else %}
+                <a href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}"
+                   class="ui-text-link">Login untuk lihat kontak</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </article>
+    </li>
+  {% empty %}
+    <li class="ui-panel ui-panel--compact p-6 text-center">
+      <p class="text-s8 text-primary-100">Belum ada tenant yang cocok.</p>
+      <p class="text-b9 mt-1 text-neutral-70">Coba ubah filter atau perbesar radius pencarian.</p>
+    </li>
+  {% endfor %}
+</ol>
+{{ tenants|json_script:"tenant-data" }}
+{{ center|json_script:"tenant-center" }}
