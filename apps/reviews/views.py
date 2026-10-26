@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import Http404, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
@@ -84,7 +84,7 @@ def create_review(request, menu_key):
     )
     if request.method == "POST" and form.is_valid():
         review = form.save(commit=False)
-        review.menu_key, review.author = menu_key, request.user
+        review.menu_key, review.author = menu.key, request.user
         review.packaging_type = resolve_packaging(menu_key, request.user)
         review.save()
         return mutation_success(request, menu_key, "Your review has been published.")
@@ -97,11 +97,14 @@ def create_review(request, menu_key):
 
 
 @require_http_methods(["GET", "POST"])
+@transaction.atomic
 def edit_review(request, pk):
-    denied = authenticated(request)
+    denied = customer(request)
     if denied is not None:
         return denied
-    review = get_object_or_404(Review, pk=pk, author=request.user)
+    review = get_object_or_404(
+        Review.objects.select_for_update(), pk=pk, author=request.user
+    )
     menu = resolve_menu(review.menu_key)
     form = ReviewForm(
         request.POST if request.method == "POST" else None,
@@ -117,7 +120,7 @@ def edit_review(request, pk):
                 updated.photo = ""
             updated.save()
             if old_photo and old_photo.name != updated.photo.name:
-                transaction.on_commit(lambda: old_photo.delete(save=False))
+                transaction.on_commit(lambda: old_photo.delete(save=False), robust=True)
         return mutation_success(
             request, review.menu_key, "Your review has been updated."
         )
@@ -130,28 +133,44 @@ def edit_review(request, pk):
 
 
 @require_http_methods(["GET", "POST"])
+@transaction.atomic
 def delete_review(request, pk):
     denied = authenticated(request)
     if denied is not None:
         return denied
-    review = get_object_or_404(Review, pk=pk, author=request.user)
+    review = get_object_or_404(
+        Review.objects.select_for_update(), pk=pk, author=request.user
+    )
+    try:
+        resolve_menu(review.menu_key)
+        menu_available = True
+    except Http404:
+        menu_available = False
     if request.method == "POST":
         menu_key, photo = review.menu_key, review.photo
         with transaction.atomic():
             review.delete()
             if photo:
-                transaction.on_commit(lambda: photo.delete(save=False))
-        return mutation_success(request, menu_key, "Your review has been deleted.")
-    return render(request, "reviews/delete.html", {"review": review})
-
-
-def mutation_success(request, menu_key, message):
-    if is_async(request):
-        return JsonResponse(
-            {"message": message, "url": reverse("reviews:menu", args=[menu_key])}
+                transaction.on_commit(lambda: photo.delete(save=False), robust=True)
+        return mutation_success(
+            request,
+            menu_key,
+            "Your review has been deleted.",
+            url=None if menu_available else reverse("catalog:show_catalog"),
         )
+    return render(
+        request,
+        "reviews/delete.html",
+        {"review": review, "menu_available": menu_available},
+    )
+
+
+def mutation_success(request, menu_key, message, url=None):
+    url = url or reverse("reviews:menu", args=[menu_key])
+    if is_async(request):
+        return JsonResponse({"message": message, "url": url})
     messages.success(request, message)
-    return redirect("reviews:menu", menu_key=menu_key)
+    return redirect(url)
 
 
 @require_POST
@@ -161,6 +180,7 @@ def helpful(request, pk):
         return denied
     with transaction.atomic():
         review = get_object_or_404(Review.objects.select_for_update(), pk=pk)
+        resolve_menu(review.menu_key)
         vote, created = HelpfulVote.objects.get_or_create(
             review=review, user=request.user
         )

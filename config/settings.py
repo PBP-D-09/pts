@@ -172,3 +172,6 @@ NOMINATIM_USER_AGENT = os.getenv(
     "NOMINATIM_USER_AGENT",
     "SustainaBowl/1.0 (PBP Fasilkom UI; https://github.com/PBP-D-09/pts)",
 )
+
+# Real Catalog UUIDs and metadata; never accept placeholder menus.
+REVIEWS_MENU_RESOLVER = "apps.reviews.integration.catalog_menu"

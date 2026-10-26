@@ -1,10 +1,8 @@
 # Reviews — SustainaBowl
 
-Implementasi Django Templates + AJAX (Fetch), tanpa framework frontend baru. Semua review, rating, dan helpful vote dibaca dari database. Tidak ada seed menu/review untuk database aplikasi.
+Modul Django Templates + AJAX (Fetch), menggunakan database Django, Accounts, dan Catalog asli. Branch kerja `reviews`. Tidak ada framework frontend tambahan.
 
-## Menjalankan lokal
-
-Dari root repository, pada branch `reviews`:
+## Menjalankan
 
 ```sh
 uv sync
@@ -13,65 +11,72 @@ uv run python manage.py tailwind build
 uv run python manage.py runserver
 ```
 
-Buka `http://127.0.0.1:8000/reviews/menu/<menu-key>/`. Sebelum adapter Catalog tersedia, gunakan ID menu yang disepakati tim: halaman hanya menampilkan identitas `Menu <menu-key>` dan tidak mengklaim menu tersebut sudah ada di Catalog. Login memakai Accounts. Pelanggan dapat menulis beberapa review, sesuai state Figma setelah publish yang menampilkan review baru dan review lamanya sekaligus. Tenan dapat membaca, memfilter, dan memberi helpful vote; tombol menulis disembunyikan.
+Buka Catalog → tenant → **Read Reviews** pada kartu menu. Tautan tersedia pada bagian All items dan kategori. Halaman dapat dibuka langsung di `/reviews/menu/<MenuItem UUID>/`.
 
-```sh
-uv run python manage.py check
-uv run python manage.py makemigrations --check --dry-run
-uv run python manage.py test apps.reviews
-uv run python manage.py test
-uv run ruff check apps/reviews config/urls.py
-uv run ruff format --check apps/reviews config/urls.py
+Catalog belum mempunyai halaman detail menu tersendiri. Reviews menampilkan konteks menu dan breadcrumb kembali ke halaman tenant; menu tanpa tenant kembali ke Catalog. Tidak dibuat halaman detail Catalog baru.
+
+Database lokal saat audit 26 Oktober 2026 memiliki **0 menu dan 0 review**. Tidak ditambahkan seed ke database aplikasi. Pengujian membuat MenuItem asli di database test / database browser QA sementara.
+
+## Integrasi Catalog dan strategi data lama
+
+Setting wajib (sudah terdaftar dalam `config/settings.py`):
+
+```python
+REVIEWS_MENU_RESOLVER = "apps.reviews.integration.catalog_menu"
 ```
+
+Resolver melakukan satu query `MenuItem.select_related("tenantId")` dan mengembalikan `MenuContext` dengan:
+
+| Field | Sumber |
+| --- | --- |
+| key | `str(MenuItem.pk)` dalam format UUID canonical lowercase dengan tanda hubung |
+| name | `MenuItem.name` |
+| description | `MenuItem.description` |
+| tenant | `MenuItem.tenantId.name`, atau kosong jika tenant null |
+| image_url | `MenuItem.photo.url`, atau kosong jika tidak ada foto |
+| detail_url | Halaman Catalog tenant, atau Catalog utama jika tenant null |
+
+Tidak ada fallback `Menu contoh-menu`. UUID tidak ditemukan, slug lama, UUID uppercase/noncanonical, dan identifier tidak valid menghasilkan 404. Setting resolver yang hilang menghasilkan configuration error agar tidak menerima menu fiktif. Foto menu bersifat dinamis; foto review disimpan terpisah.
+
+`Review.menu_key` tetap `SlugField(max_length=100)`: UUID canonical sepanjang 36 karakter valid untuk field ini. Tidak ada perubahan skema, migration baru, pemetaan heuristik, atau penghapusan data. Ini mempertahankan baris lama tanpa memaksakan FK yang akan menolak identifier lama.
+
+Keberadaan menu divalidasi oleh resolver pada halaman, create, edit, dan helpful. Create menggunakan key hasil resolver dan author dari session; field POST tidak dapat mengganti keduanya. `Review.clean()` juga menolak key tidak valid pada admin / `full_clean()`. Seperti Django pada umumnya, `save()`, `bulk_create()`, dan `QuerySet.update()` tidak otomatis menjalankan `full_clean()`: pemanggil ORM/script baru harus melakukan validasi sendiri. String reference tidak menyediakan foreign key constraint atau jaminan terhadap penghapusan Catalog secara bersamaan. FK nullable dan backfill terverifikasi dapat dipertimbangkan tim kemudian jika membutuhkan integritas lintas tabel di tingkat database.
+
+Kebijakan menu terhapus / identifier lama:
+
+- Review, vote, dan foto lama **tidak dihapus otomatis** oleh penghapusan menu/tenant Catalog.
+- Halaman menu, create, edit, dan helpful menghasilkan 404; data tidak tercampur dengan menu aktif.
+- Pemilik masih boleh menghapus review melalui URL delete miliknya. Konfirmasi/back link dan respons sukses kembali ke Catalog bila menu tidak tersedia. Akun lain tetap ditolak.
+- Baris lama dapat diaudit melalui admin/database oleh maintainer. Jika ada pemetaan historis yang dapat dibuktikan, backfill `menu_key` ke UUID canonical melalui migration/script yang direview, dengan backup dan dry-run. Jangan menebak pemetaan dari kesamaan nama atau menghapus baris tanpa pemetaan.
+- Mengedit baris orphan melalui admin memerlukan key menu yang valid. Membuka admin tidak mengubah data lama.
 
 ## Fitur dan aturan
 
-- CRUD review dengan modal create, edit terisi, dan konfirmasi delete. GET tidak menghapus data. Author dan menu ditentukan server, bukan field POST.
-- Hanya pelanggan yang sudah login dapat membuat review. Edit/hapus dibatasi pemilik, termasuk melalui URL langsung. CSRF tetap aktif.
-- Dua rating integer 1–5: Food Taste dan Sustainable Packaging. Database memiliki check constraints.
-- Summary seluruh review menu, tidak berubah ketika filter diterapkan. Overall adalah rata-rata dua skor; distribusi/filter Rating menggunakan Food Taste. Bintang summary dibulatkan ke integer terdekat, angka rata-rata tetap satu desimal.
-- Rating; sentimen Positive/Neutral/Negative; packaging satisfaction: 5 Very Satisfied, 4 Satisfied, 3 Neutral, 1–2 Unsatisfied. Filter digabung dengan AND.
-- Sentimen menggunakan heuristik kata dalam teks Inggris/Indonesia, dengan negasi sederhana, di `selectors.py`. Bukan prediksi ML atau turunan rating. Teks tanpa kecocokan/netral dianggap Neutral. Heuristik terbatas untuk sarkasme dan kalimat kompleks; penyaringan ini memindai teks review menu sehingga dapat diganti anotasi tersimpan saat volume besar.
-- Sort Newest, Oldest, Most Helpful, Highest Rating (Food Taste); tie-break deterministik berdasarkan waktu dan PK.
-- Empat review per halaman, Load More menambahkan hasil tanpa reload. URL filter dapat dibuka langsung; backend tetap mendukung pagination biasa.
-- Satu helpful vote per akun/review dengan unique constraint. Tombol kedua kali membatalkan vote, dan state terpilih berasal dari database. Row lock digunakan saat toggle.
-- Satu foto opsional: JPEG/PNG asli, maksimum 5 MiB, divalidasi Pillow serta ekstensi. Nama storage menggunakan UUID. Foto dapat diganti/dihapus; file lama dibersihkan setelah transaksi berhasil. Preview dan counter 500 karakter tersedia.
-- Empty reviews, no matching reviews, active chips, skeleton loading, request error/retry, submitting/saving/deleting, guest login prompt, dan notifikasi publish/update/delete.
-- Dialog native menyediakan focus trap dan Escape. Fokus kembali ke kontrol sebelumnya. HTML meng-escape teks pengguna.
+- Create/read/edit/delete, modal terisi saat edit, konfirmasi delete. GET delete tidak menghapus.
+- Hanya customer terautentikasi dapat create/edit. Pemilik saja dapat edit/delete; pemilik yang jenis akunnya berubah masih dapat menghapus datanya. Tenant dapat membaca/filter/vote; tidak dapat menulis review baru atau mengedit review customer.
+- CSRF aktif untuk semua mutation. Guest AJAX menerima 401 dan modal login; request biasa redirect ke Accounts. `next` kembali ke Reviews; Accounts tetap memvalidasi redirect.
+- Food Taste dan Sustainable Packaging integer 1–5, dengan validator form dan check constraints database.
+- Summary menghitung seluruh review **menu terkait**, terlepas dari filter. Overall = rata-rata kedua skor; distribusi, filter Rating, dan Highest Rating menggunakan Food Taste. Bintang dibulatkan ke integer terdekat; skor tampil satu desimal.
+- Filter rating, sentiment, packaging satisfaction digabung dengan AND. Packaging: 5 Very Satisfied, 4 Satisfied, 3 Neutral, 1–2 Unsatisfied.
+- Sentiment memakai heuristik kata Inggris/Indonesia dan negasi sederhana (`selectors.py`), bukan ML/verified opinion. Sarkasme dan kalimat kompleks terbatas. Filter ini memindai teks review menu; pertimbangkan hasil tersimpan bila volume besar.
+- Newest, Oldest, Most Helpful, Highest Rating; tie-break waktu/PK deterministik. Pagination empat kartu; Load More menambah hasil tanpa reload.
+- Helpful toggle / cancellation; unique constraint akun+review, row lock pada backend yang mendukungnya. SQLite lokal tidak menyediakan row lock setara PostgreSQL.
+- Foto review JPEG/PNG asli maksimum 5 MiB, diperiksa Pillow dan ekstensi. UUID storage name, replace/remove; file lama dihapus setelah commit. Callback cleanup memakai `robust=True`: kegagalan storage dicatat Django tanpa mengubah respons sukses menjadi error setelah data sudah tersimpan. File tersisa akibat storage gagal perlu cleanup operasional; tidak ada garbage collector otomatis.
+- Edit/delete memakai transaksi dan lock review agar request bersamaan tidak memakai state foto lama yang berbeda pada database yang mendukung row lock.
+- Author dan tenant author diambil melalui join; helpful count dan status vote dianotasi sehingga tidak ada query per kartu.
+- Empty, no matching, active filters, loading, request error/retry, publish/update/delete toast, selected helpful. Native dialog menyediakan focus trap/Escape; teks pengguna di-escape.
 
-## Kontrak Catalog (menunggu model tim)
-
-`apps/catalog/models.py` kosong saat implementasi. Tidak dibuat model/FK Catalog baru. `Review.menu_key` merupakan referensi opaque berupa slug, maksimum 100 karakter; bukan foreign key dan belum menjamin keberadaan menu tanpa resolver. Integrasi produksi harus memasang resolver untuk validasi keberadaan menu dan metadata asli.
-
-Setting opsional:
-
-```python
-REVIEWS_MENU_RESOLVER = "apps.catalog.integrations.resolve_review_menu"
-```
-
-Callable `resolve_review_menu(key: str)` mengembalikan `apps.reviews.integration.MenuContext`, atau `None`/raise `Http404` bila tidak ditemukan. `MenuContext.key` harus sama dengan key yang diminta. Fields: `key`, `name`, `tenant`, `description`, `image_url`, `detail_url`, `packaging_label`. Field opsional kosong tidak dirender. Gunakan URL tepercaya untuk gambar dan detail. File adapter di Catalog belum dibuat karena modelnya belum disepakati.
-
-Dari halaman detail Catalog:
-
-```django
-{% url 'reviews:menu' menu_key=menu.pk %}
-```
-
-Tim perlu menyepakati jenis PK/slug stabil (termasuk UUID yang dapat dikonversi ke string), kebijakan menu terhapus, dan migrasi pemetaan ke FK ketika model final tersedia. Tidak ada perubahan atau migrasi pada Catalog dalam pekerjaan ini.
-
-## Kontrak Orders / kemasan (opsional)
-
-Badge pada kartu adalah snapshot `Review.packaging_type`: `reusable`, `compostable`, atau kosong. Figma tidak memiliki input pilihan jenis kemasan pada form review, jadi nilai ini tidak diterima dari browser.
+## Kontrak Orders (opsional, belum tersedia)
 
 ```python
 REVIEWS_PACKAGING_RESOLVER = "apps.orders.integrations.resolve_review_packaging"
 ```
 
-Callable `resolve_review_packaging(menu_key, user)` mengembalikan salah satu nilai tersebut dari pesanan/kemasan asli pelanggan. Dipanggil saat create; edit tidak mengganti snapshot. Tanpa adapter, badge tidak ditampilkan. Tim Orders perlu menyepakati cara memilih pesanan jika pelanggan membeli menu yang sama beberapa kali. Belum ada klaim verified purchase, pembatasan wajib membeli, atau relasi Order karena kontraknya belum tersedia.
+**Jangan pasang setting ini sebelum callable backend tersedia.** Callable menerima `(menu_key: str, user: CustomUser)` dan mengembalikan `"reusable"`, `"compostable"`, atau `""` bila tidak ada pesanan relevan. Nilai lain ditolak sebagai kesalahan konfigurasi.
 
-## Integrasi Accounts
+Adapter harus membaca pesanan asli milik user, mencocokkan UUID menu, dan mengambil jenis kemasan dari data pesanan. Tim Orders masih perlu menyediakan relasi user/menu, status pesanan yang memenuhi syarat, packaging type yang konsisten, dan aturan pemilihan pesanan bila customer membeli menu sama beberapa kali. Kontrak saat ini hanya menghasilkan snapshot label, belum menyimpan order ID.
 
-FK memakai `settings.AUTH_USER_MODEL`, `CustomUser.is_customer`, dan `display_name` yang sudah ada. Login prompt mengarah ke `accounts:login` dengan `next` kembali ke menu Reviews. Tidak ada perubahan Accounts. Header/footer/tombol/form styles dan toast script yang tersedia digunakan kembali. Styling tambahan terbatas pada Reviews.
+Tanpa adapter: rating packaging tetap dapat diberikan; `packaging_type` kosong dan badge tidak ditampilkan. Form tidak menerima klaim packaging dari browser. Snapshot diambil saat create dan tidak berubah saat edit. Tidak ada model/data pesanan fiktif, verified purchase, pembatasan wajib membeli, atau validasi kepemilikan pesanan yang diklaim sudah berjalan.
 
 ## Routes
 
@@ -83,103 +88,53 @@ FK memakai `settings.AUTH_USER_MODEL`, `CustomUser.is_customer`, dan `display_na
 | GET, POST | <pk>/delete/ | reviews:delete |
 | POST | <pk>/helpful/ | reviews:helpful |
 
-Header `X-Reviews-Request: true` memilih partial HTML untuk daftar/form dan JSON untuk mutasi berhasil. Form tidak valid: HTTP 422 dan form dengan errors; guest AJAX: 401; bukan pemilik: 404; akun tenan membuat review: 403; filter tidak valid: 400. Tanpa header, mutasi berhasil redirect dan memakai Django messages. Server/network error ditangani client dengan retry tanpa menampilkan detail internal.
+## Referensi Figma dan batas visual
 
-## Migration dan file
+Sumber: [SustainaBowl Reviews](https://www.figma.com/design/jlTevWxK0uS15Kw4UGy6iW/SustainaBowl-Modules?node-id=150-514).
 
-- `models.py`: Review, HelpfulVote, constraints dan index.
-- `migrations/0001_initial.py`: tabel Reviews dan helpful votes, FK Accounts, constraints/index.
-- `migrations/0002_review_packaging_type.py`: snapshot jenis kemasan opsional. Keduanya aditif dan sudah diterapkan lokal.
-- `forms.py`: validasi input/upload dan pilihan filter.
-- `selectors.py`: query, summary, filter/sort, sentimen.
-- `integration.py`: adapter Catalog dan Orders.
-- `views.py`, `urls.py`: endpoint HTML/AJAX, izin, CRUD dan votes.
-- `admin.py`: registrasi model Reviews.
-- `templatetags/__init__.py`, `templatetags/review_tags.py`: pemilihan aset bintang.
-- `templates/reviews/reviews.html`, `modal_base.html`, `form.html`, `delete.html`, `filter_error.html`, `partials/results.html`, `partials/card.html`.
-- `static/reviews/reviews.css`, `reviews.js`, `stars-0.svg` sampai `stars-5.svg`. SVG bintang diunduh langsung dari Figma MCP, ukuran asli 116 × 20 dipertahankan. Ikon lain memakai Lucide yang sudah tersedia.
-- `tests.py`: 16 tes Reviews.
-- `README.md`: dokumentasi ini.
-- Integrasi di luar app: satu include `reviews/` pada `config/urls.py`. CSS Tailwind dibangun ulang ke output yang sudah di-ignore Git; sumber Design System tidak diubah.
+Pada audit ini Figma MCP berhasil membaca struktur Reviews (150:514), design context + screenshot MAIN (156:819), MODALS/create (157:1140), STATES/request error (161:3595), dan COMPONENTS/showcase (162:4327). Design System (9:2) dibaca melalui metadata dan context Fonts: Heading (10:8), Sub-heading (10:11), Body (10:15). Pembacaan context tingkat page sempat gagal karena selection; pembacaan frame langsung berhasil. Tidak ada perubahan file Figma.
 
-## Verifikasi, 24 Oktober 2026
+UI lama dipertahankan: max-width 1120, brand #2a835f, accent #12544f, teks #092328, secondary #63706c, border #d7dfd9, Poppins Bold / Inter, kartu radius 10, modal 16, jarak 24/32, tombol tinggi 44. Shared shell, button, panel, typography, icon Lucide, toast, dan SVG bintang lokal tetap digunakan. Foto menu kini mengikuti data Catalog.
 
-- Django system checks: lulus, 0 masalah.
-- Makemigrations dry-run: tidak ada perubahan model yang belum dimigrasikan.
-- Migrations Reviews: dibuat, diperiksa, diterapkan; hanya create/add operasi, tanpa operasi destruktif.
-- Seluruh suite: 56 tes lulus (16 Reviews, 40 tes modul yang sudah ada). Meliputi CRUD, isolasi menu, auth/owner, guest/tenan, CSRF, escape XSS, batas rating database, helpful unique/toggle, validasi teks/foto, file cleanup, kombinasi filter, sort, pagination, serta kontrak adapter.
-- Ruff check/format dan build Tailwind: lulus.
-- Ada warning lingkungan Whitenoise bahwa folder `staticfiles/` belum ada selama tes; tidak menggagalkan tes. Folder tersebut dibuat lewat collectstatic saat deployment, bukan dibutuhkan oleh dev server.
-- Browser QA memakai database SQLite temporer terpisah; fixture pengujian tidak masuk ke database project. Hasil pemeriksaan browser akhir dicatat di bawah.
+Browser inspeksi dilakukan pada viewport sekitar 654 px: filter dua kolom, modal scrollable, context menu/foto dan state utama terbaca. Tidak mengklaim pixel-perfect semua viewport atau screenshot regression otomatis. Shared header/footer dan native dropdown tetap mengikuti implementasi repository/platform; tidak dilakukan redesign.
 
-## Referensi Figma
+## Laporan QA — 26 Oktober 2026
 
-Sumber: [SustainaBowl Reviews](https://www.figma.com/design/jlTevWxK0uS15Kw4UGy6iW/SustainaBowl-Modules?node-id=150-514). Metadata, design context, dan screenshot seluruh frame Reviews diperoleh melalui Figma MCP. Design System page 9:2 juga diperiksa, termasuk fonts, sizes, colors, buttons, input, toast, dan dropdown. Tidak ada perubahan Figma.
+```sh
+uv run python manage.py check
+uv run python manage.py makemigrations --check --dry-run
+uv run python manage.py test apps.reviews
+uv run python manage.py test
+uv run ruff check apps/reviews config/settings.py config/urls.py
+uv run ruff format --check apps/reviews config/settings.py config/urls.py
+uv run ruff check .
+uv run python manage.py tailwind build
+node --check apps/reviews/static/reviews/reviews.js
+git diff --check
+```
 
-Target styling: content desktop max-width 1120, latar #f4f7f2, surface putih, border #d7dfd9, brand #2a835f, accent #12544f, teks #092328, secondary #63706c, Poppins Bold/Inter Regular-Semibold, radius kartu 10, modal 16, jarak utama 24/32, tombol tinggi 44. Breakpoint tablet/mobile ditambahkan mengikuti layout fleksibel karena frame Reviews yang tersedia berukuran desktop.
+- Django check: lulus. Migration dry-run: tidak ada perubahan; tidak ada migration baru/yang diterapkan ke database aplikasi dalam finalisasi ini.
+- Reviews: **29 tests lulus** (16 tests lama diadaptasi menggunakan MenuItem UUID asli, 13 tests tambahan).
+- Seluruh proyek: **121 tests, 120 lulus, 1 gagal**, pada `apps.designsystem.tests.DesignSystemPageTests.test_page_is_public_and_uses_application_shell`: mengharapkan `href="/#manfaat"` yang sudah diganti header dengan `/catalog/`. Kegagalan yang sama direproduksi dari arsip **HEAD sebelum perubahan**, di direktori sementara. Test/header tersebut tidak diubah untuk menjaga scope.
+- Ruff file Reviews dan config yang diperiksa: lulus. Format: lulus. Ruff repository: **6 temuan lama** di Catalog (imports/unused imports pada admin/forms/models/views), juga direproduksi dari arsip HEAD. Tidak dilakukan auto-fix Catalog.
+- Tailwind build, JavaScript syntax, dan whitespace diff: lulus.
+- Django mengeluarkan warning bahwa direktori `staticfiles/` belum ada. Build CSS berhasil; `collectstatic` tetap bagian prosedur deployment tim. Respons kegagalan Nominatim dalam test Map berasal dari skenario mock, bukan kegagalan test.
 
-Batas kesesuaian: header/footer menggunakan implementasi bersama repository sebagaimana diminta; tidak dirombak untuk menyalin perbedaan shell Figma. Menu/tenant/foto/badge diisi data integrasi nyata, sehingga belum bisa dibandingkan dengan contoh nama makanan dalam desain. Dropdown menggunakan select native untuk aksesibilitas; popup mengikuti platform. Notifikasi memakai toast bersama. Belum ada klaim pixel-perfect untuk seluruh viewport/platform atau hasil screenshot otomatis.
+Cakupan tests: metadata/foto/tenant nullable, canonical UUID/404, isolasi menu dan summary, rename/delete menu, preservasi identifier lama, CRUD dan photo cleanup, guest/customer/tenant/owner permissions, login next, spoofed author/menu/packaging, rating/distribution/average, seluruh satisfaction/sentiment dan kombinasi filter, sorting/pagination, helpful toggle/unique constraint, CSRF, escaping, query tanpa N+1, tanpa Orders dan kontrak reusable/compostable/invalid adapter.
 
-Frame yang dibaca:
+Browser QA memakai server loopback terpisah dan database/media sementara dengan MenuItem UUID asli. Database aplikasi tidak digunakan. Terverifikasi:
 
-| Node | Frame |
-| --- | --- |
-| 156:819 | Menu Detail — Customer Reviews |
-| 169:4750 | Reviews — Prototype Guide |
-| 157:1140 | Create Review — Default |
-| 157:1192 | Create Review — Selected Ratings |
-| 157:1256 | Create Review — Photo Uploaded |
-| 157:1308 | Create Review — Validation Error |
-| 157:1360 | Create Review — Submitting |
-| 157:1455 | Create Review — Server Error |
-| 157:1507 | Edit Review — Prefilled |
-| 157:1576 | Delete Review — Confirmation |
-| 157:1588 | Guest — Log in to continue |
-| 164:4175 | Create Review — Photo Removed |
-| 164:4237 | Edit Review — Saving Changes |
-| 164:4297 | Delete Review — Deleting |
-| 161:1532 | Menu Detail — Guest Reviews |
-| 161:1977 | Menu Detail — No Reviews Yet |
-| 161:2349 | Menu Detail — No Matching Reviews |
-| 161:2751 | Menu Detail — Filtering and Loading |
-| 161:3167 | Menu Detail — Review Published |
-| 161:3595 | Menu Detail — Request Error |
-| 161:3968 | Menu Detail — Review Deleted |
-| 161:4339 | Menu Detail — Review Updated |
-| 162:3585 | Menu Detail — Positive Reviews and Active Filters |
-| 162:3962 | Menu Detail — Sorted by Most Helpful |
-| 164:4309 | Menu Detail — Helpful Vote Selected |
-| 152:524 | Reviews / Primary Button |
-| 152:535 | Reviews / Secondary Button |
-| 152:585 | Reviews / Star Rating |
-| 152:598 | Reviews / Helpful Button |
-| 152:605 | Reviews / Filter Chip |
-| 152:630 | Reviews / Filter Dropdown |
-| 152:656 | Reviews / Image Upload |
-| 152:681 | Reviews / Toast |
-| 155:796 | Reviews / Review Card |
-| 155:1059 | Reviews / Review Form |
-| 155:1167 | Reviews / Modal |
-| 155:1193 | Reviews / Empty State |
-| 162:3534 | Reviews / Filter Option |
-| 162:3535 | Rating — Dropdown Options |
-| 162:3550 | Sentiment — Dropdown Options |
-| 162:3561 | Sustainable Packaging Satisfaction — Dropdown Options |
-| 162:3574 | Sort — Dropdown Options |
-| 162:4327 | Reviews — Component States Showcase |
+- Catalog tenant → Read Reviews; nama/tenant/deskripsi/foto benar.
+- Guest login modal → Accounts → kembali ke Reviews.
+- Publish 6 → 7 review; edit rating/teks dan toast updated; delete confirmation → 6 review dan toast deleted.
+- Helpful 0 → 1 selected → 0, Load More empat → tujuh kartu sebelum penghapusan.
+- Kombinasi Rating + Positive menampilkan dua chip, no matching state, URL filter yang sesuai.
+- Menu kedua menampilkan empty state terpisah.
 
+Upload/replace/remove foto dan invalid requests diverifikasi pada tests backend; dialog file OS, network failure injection/retry, serta seluruh viewport desktop/mobile belum diverifikasi lewat browser dalam audit ini.
 
-### Hasil browser QA akhir
+## Perubahan dan kesiapan review
 
-- Login Accounts kembali ke halaman Reviews melalui `next`.
-- Guest: empty state dan modal Log in to continue terlihat.
-- Publish: dua rating dan teks tersimpan; modal tertutup; toast sukses muncul; jumlah judul dan summary berubah 6 → 7.
-- Edit: form memuat nilai tersimpan, teks/rating berubah, summary diperbarui, toast updated muncul tanpa request-error.
-- Delete: konfirmasi terlihat; fixture review QA dihapus; jumlah judul dan summary kembali 7 → 6; toast deleted muncul.
-- Helpful: angka 0 → 1 dan state selected langsung berubah.
-- Load More: empat kartu menjadi enam kartu tanpa reload.
-- Filter Rating + Positive: chip aktif dan No reviews match your filters tampil; URL query ikut berubah.
-- Tampilan diperiksa pada viewport browser sekitar 654 px; modal scrollable dan filter dua kolom. Breakpoint desktop/ponsel lain belum diuji visual satu per satu.
-- Foto, izin, validasi, dan file cleanup diuji pada suite Django. Dialog pemilihan file OS, kegagalan jaringan buatan, dan screenshot regression otomatis belum diuji browser.
+File diubah: `apps/reviews/integration.py`, `models.py`, `selectors.py`, `views.py`, `tests.py`, `static/reviews/reviews.js`, `templates/reviews/modal_base.html`, README ini; `config/settings.py`; dan dua tautan pada `apps/catalog/templates/catalog/catalog_tenant.html`. Tidak ada perubahan model/view Catalog, Accounts, Map, Orders, shared Design System, atau migrations.
 
-Perubahan dibatasi app Reviews dan satu include URL. Branch tetap `reviews`; tidak ada commit, push, merge, PR, perubahan `.env`, atau perubahan desain Figma.
+Integrasi dan fitur inti Reviews siap **direview tim / calon PR**. Belum dinyatakan 100% production-ready karena suite repository belum seluruhnya hijau dan ada batas pengujian visual/operasional di atas. Integrasi Orders tetap opsional. Tidak ada commit, push, merge baru, PR, reset/flush database, perubahan identitas Git, atau perubahan `.env`.

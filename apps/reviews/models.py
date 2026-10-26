@@ -1,8 +1,10 @@
 import uuid
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.http import Http404
 
 
 def review_photo_path(instance, filename):
@@ -10,7 +12,7 @@ def review_photo_path(instance, filename):
 
 
 class Review(models.Model):
-    # Opaque Catalog identifier; replace with a FK only after Catalog's contract exists.
+    # Canonical Catalog UUID string. Retained to preserve unmapped legacy reviews.
     menu_key = models.SlugField(max_length=100, db_index=True)
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews"
@@ -51,6 +53,20 @@ class Review(models.Model):
                 fields=["menu_key", "-created_at"], name="reviews_menu_created_idx"
             )
         ]
+
+    def clean(self):
+        super().clean()
+        # ModelForms for create assign the server-resolved key after validation.
+        # Admin/full_clean must also reject invented Catalog identifiers.
+        if self.menu_key:
+            from .integration import resolve_menu
+
+            try:
+                resolve_menu(self.menu_key)
+            except Http404 as error:
+                raise ValidationError(
+                    {"menu_key": "Catalog menu not found."}
+                ) from error
 
     @property
     def initials(self):

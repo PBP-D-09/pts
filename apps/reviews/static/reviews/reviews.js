@@ -247,7 +247,9 @@
                 modalBusy = false;
                 dialog.close();
                 window.showToast?.(result.message);
-                await loadReviews(new URL(result.url, location.origin));
+                const destination = new URL(result.url, location.origin);
+                if (destination.pathname !== location.pathname) location.assign(destination);
+                else await loadReviews(destination);
             }
         } catch {
             if (isHelpful) showError(() => form.requestSubmit());

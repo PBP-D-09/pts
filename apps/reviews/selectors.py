@@ -52,7 +52,7 @@ def sentiment(text):
 def review_queryset(menu_key, user, filters):
     qs = (
         Review.objects.filter(menu_key=menu_key)
-        .select_related("author")
+        .select_related("author__tenant")
         .annotate(helpful_count=Count("helpful_votes"))
     )
     votes = (
