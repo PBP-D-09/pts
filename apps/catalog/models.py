@@ -23,6 +23,7 @@ class MenuItem(models.Model):
 	tenantId = models.ForeignKey("accounts.Tenant", on_delete=models.CASCADE, related_name="menus", null=True)
 	name = models.CharField(max_length=255)
 	description = models.TextField()
+	photo = models.ImageField(upload_to="menu_items/", blank=True)
 	category = models.ForeignKey(MenuCategory, on_delete=models.CASCADE, related_name="menu_items", null=True)
 	allergen_info = models.TextField(default="no allergen information listed")  
 	vegetarian = models.BooleanField(default=False)
