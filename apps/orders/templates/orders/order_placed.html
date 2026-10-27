@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% load lucide %}
+
+{% block title %}Order placed | SustainaBowl{% endblock %}
+{% block content %}
+  {% url 'catalog:show_catalog' as catalog_url %}
+  {% url 'orders:order_list' as orders_url %}
+  <main class="bg-surface-canvas px-5 py-6 sm:px-8 lg:px-16 lg:pb-16 lg:pt-10">
+    <div class="mx-auto max-w-328">
+      {% include "orders/partials/stepper.html" with current=3 %}
+      <section class="ui-panel mx-auto mt-2 grid max-w-160 gap-6 p-6 sm:mt-10 sm:p-8"
+               aria-labelledby="placed-title">
+        <div class="grid justify-items-center gap-3 text-center">
+          <span class="flex size-14 items-center justify-center rounded-full bg-tertiary-10 text-tertiary-80">{% lucide "check" size=28 stroke_width=2.5 %}</span>
+          <h1 id="placed-title" class="text-h4 text-primary-100">Order placed</h1>
+          <p class="text-b7 text-neutral-70">
+            <span class="tabular-nums text-primary-100">{{ order.order_code }}</span> is waiting for the tenant.
+            Estimated delivery about {{ order.delivery_eta_minutes }} min.
+          </p>
+          {% if order.eco_points %}
+            <span class="ui-tag bg-tertiary-40 text-primary-100">{% lucide "leaf" size=14 stroke_width=2 %} +{{ order.eco_points }} Eco Points</span>
+          {% endif %}
+        </div>
+        <ul class="grid gap-1 border-t border-border-subtle pt-4">
+          {% for item in order.items.all %}
+            <li class="text-b7 flex justify-between gap-4 text-primary-100">
+              <span>{{ item.quantity }}× {{ item.item_name }}</span>
+              <span class="shrink-0 tabular-nums">{{ item.formatted_subtotal }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+        <dl class="text-b7 grid gap-2 border-t border-border-subtle pt-4">
+          <div class="flex justify-between gap-4">
+            <dt class="text-neutral-70">Subtotal</dt>
+            <dd class="tabular-nums text-primary-100">
+              {{ order.formatted_subtotal }}
+            </dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt class="text-neutral-70">Packaging · {{ order.get_packaging_type_display }}</dt>
+            <dd class="tabular-nums text-primary-100">
+              {{ order.formatted_packaging_fee }}
+            </dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt class="text-neutral-70">Delivery</dt>
+            <dd class="tabular-nums text-primary-100">
+              {{ order.formatted_delivery_fee }}
+            </dd>
+          </div>
+          <div class="flex items-baseline justify-between gap-4 border-t border-border-subtle pt-3 text-primary-100">
+            <dt class="text-s7">Total</dt>
+            <dd class="text-s6 tabular-nums">
+              {{ order.formatted_total_price }}
+            </dd>
+          </div>
+        </dl>
+        <div class="grid gap-1 rounded-lg bg-surface-subtle p-4">
+          <p class="text-s8 text-primary-100">Delivering to</p>
+          <p class="text-b8 whitespace-pre-line text-neutral-70">{{ order.delivery_address }}</p>
+          {% if order.delivery_notes %}
+            <p class="text-b8 mt-2 text-neutral-70">
+              <span class="text-s8 text-primary-100">Note:</span> {{ order.delivery_notes }}
+            </p>
+          {% endif %}
+        </div>
+        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <a href="{{ catalog_url }}"
+             class="ui-button border border-neutral-40 bg-neutral-10 text-primary-100 hover:bg-surface-subtle">Continue shopping</a>
+          {% include "components/button.html" with href=orders_url label="View my orders" variant="tertiary" %}
+        </div>
+      </section>
+    </div>
+  </main>
+{% endblock %}
