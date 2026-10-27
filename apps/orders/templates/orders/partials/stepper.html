@@ -1,0 +1,49 @@
+{% load lucide %}
+
+{# Stepper Cart → Checkout → Order placed. Parameter: current (1, 2, atau 3). #}
+<ol class="hidden items-center gap-3 sm:flex"
+    aria-label="Checkout progress">
+  <li>
+    {% if current > 1 %}
+      <a href="{% url 'orders:cart' %}"
+         class="text-s8 flex items-center gap-2 text-primary-100 hover:text-primary-80">
+        <span class="flex size-6.5 items-center justify-center rounded-full bg-tertiary-10 text-tertiary-80">{% lucide "check" size=14 stroke_width=2.5 %}</span>
+        Cart
+      </a>
+    {% else %}
+      <span class="text-s8 flex items-center gap-2 text-primary-100"
+            aria-current="step">
+        <span class="flex size-6.5 items-center justify-center rounded-full bg-tertiary-70 tabular-nums text-neutral-10">1</span>
+        Cart
+      </span>
+    {% endif %}
+  </li>
+  <li class="h-0.5 w-12 {% if current > 1 %}bg-tertiary-70{% else %}bg-border-subtle{% endif %}"
+      aria-hidden="true"></li>
+  <li>
+    <span class="text-s8 flex items-center gap-2 {% if current >= 2 %}text-primary-100{% else %}text-neutral-70{% endif %}"
+          {% if current == 2 %}aria-current="step"{% endif %}>
+      {% if current > 2 %}
+        <span class="flex size-6.5 items-center justify-center rounded-full bg-tertiary-10 text-tertiary-80">{% lucide "check" size=14 stroke_width=2.5 %}</span>
+      {% elif current == 2 %}
+        <span class="flex size-6.5 items-center justify-center rounded-full bg-tertiary-70 tabular-nums text-neutral-10">2</span>
+      {% else %}
+        <span class="flex size-6.5 items-center justify-center rounded-full border-2 border-neutral-60 tabular-nums">2</span>
+      {% endif %}
+      Checkout
+    </span>
+  </li>
+  <li class="h-0.5 w-12 {% if current > 2 %}bg-tertiary-70{% else %}bg-border-subtle{% endif %}"
+      aria-hidden="true"></li>
+  <li>
+    <span class="text-s8 flex items-center gap-2 {% if current == 3 %}text-primary-100{% else %}text-neutral-70{% endif %}"
+          {% if current == 3 %}aria-current="step"{% endif %}>
+      {% if current == 3 %}
+        <span class="flex size-6.5 items-center justify-center rounded-full bg-tertiary-70 tabular-nums text-neutral-10">3</span>
+      {% else %}
+        <span class="flex size-6.5 items-center justify-center rounded-full border-2 border-neutral-60 tabular-nums">3</span>
+      {% endif %}
+      Order placed
+    </span>
+  </li>
+</ol>
