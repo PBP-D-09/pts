@@ -145,4 +145,12 @@ def record_eco_points(*, profile, points, activity_type, description, co2_saved=
 
 @transaction.atomic
 def reset_eco_points(*, profile):
-    profile.point_activities.all().delete()
+    profile.eco_points_reset_at = timezone.now()
+    profile.save(update_fields=["eco_points_reset_at"])
+    return EcoPointActivity.objects.create(
+        profile=profile,
+        points=0,
+        activity_type=EcoPointActivity.ActivityType.ADJUSTMENT,
+        description="Statistik Eco Points direset.",
+        co2_saved=0,
+    )

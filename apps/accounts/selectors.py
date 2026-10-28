@@ -1,8 +1,11 @@
 from django.apps import apps
-from django.db.models import Count, Sum
+from django.db.models import Count, F, Q, Sum
+from django.db.models.functions import Trim
 from django.utils import timezone
 
 from .models import CustomUser, DietPreference, EcoPointActivity, Tenant, UserProfile
+
+UNKNOWN_ALLERGEN_INFO = "no allergen information listed"
 
 
 def get_profile_for_user(user):
@@ -28,9 +31,9 @@ def get_selected_diet_codes(profile):
 def get_account_dashboard(profile):
     month_start = timezone.localdate().replace(day=1)
     monthly_points = (
-        profile.point_activities.filter(created_at__date__gte=month_start).aggregate(
-            total=Sum("points")
-        )["total"]
+        profile.active_point_activities()
+        .filter(created_at__date__gte=month_start)
+        .aggregate(total=Sum("points"))["total"]
         or 0
     )
     return {
@@ -38,10 +41,17 @@ def get_account_dashboard(profile):
         "diet_preferences": get_diet_preferences(),
         "selected_diet_codes": get_selected_diet_codes(profile),
         "recommendations": get_recommendations(profile),
-        "point_activities": profile.point_activities.all()[:5],
-        "diet_activities": profile.diet_activities.all()[:5],
+        "unsupported_diets": get_unsupported_recommendation_diets(profile),
         "monthly_points": monthly_points,
     }
+
+
+def get_unsupported_recommendation_diets(profile):
+    return list(
+        profile.diets.exclude(code=DietPreference.Code.VEGETARIAN).values_list(
+            "label", flat=True
+        )
+    )
 
 
 def get_recommendations(profile):
@@ -50,23 +60,31 @@ def get_recommendations(profile):
     except LookupError:
         return []
 
-    field_names = {field.name for field in menu_model._meta.get_fields()}
-    required = {"name", "description", "eco_points", "diet_tags", "allergen_tags"}
-    if not required.issubset(field_names):
-        return []
+    if get_unsupported_recommendation_diets(profile):
+        return menu_model.objects.none()
 
-    diet_codes = list(profile.diets.values_list("code", flat=True))
-    allergy_names = list(profile.allergies.values_list("name", flat=True))
-    if not diet_codes:
-        return []
+    queryset = menu_model.objects.filter(tenantId__isnull=False).select_related(
+        "tenantId", "category"
+    )
+    if profile.diets.filter(code=DietPreference.Code.VEGETARIAN).exists():
+        queryset = queryset.filter(vegetarian=True)
 
-    queryset = menu_model.objects.all()
-    if "is_available" in field_names:
-        queryset = queryset.filter(is_available=True)
-    queryset = queryset.filter(diet_tags__code__in=diet_codes).distinct()
+    allergy_names = [
+        name.strip()
+        for name in profile.allergies.values_list("name", flat=True)
+        if name.strip()
+    ]
     if allergy_names:
-        queryset = queryset.exclude(allergen_tags__name__in=allergy_names)
-    return queryset[:3]
+        queryset = queryset.annotate(
+            normalized_allergen_info=Trim("allergen_info")
+        ).exclude(
+            Q(allergen_info__isnull=True)
+            | Q(normalized_allergen_info="")
+            | Q(allergen_info__iexact=UNKNOWN_ALLERGEN_INFO)
+        )
+        for allergy_name in allergy_names:
+            queryset = queryset.exclude(allergen_info__icontains=allergy_name)
+    return queryset.order_by("tenantId__name", "name")[:3]
 
 
 def get_admin_insights_data():
@@ -74,10 +92,14 @@ def get_admin_insights_data():
     diet_distribution = DietPreference.objects.annotate(
         user_count=Count("profiles")
     ).order_by("-user_count", "label")
+    active_activities = EcoPointActivity.objects.filter(
+        Q(profile__eco_points_reset_at__isnull=True)
+        | Q(created_at__gte=F("profile__eco_points_reset_at"))
+    )
     return {
         "summary": {
             "total_users": CustomUser.objects.count(),
-            "total_eco_points": EcoPointActivity.objects.aggregate(total=Sum("points"))[
+            "total_eco_points": active_activities.aggregate(total=Sum("points"))[
                 "total"
             ]
             or 0,
