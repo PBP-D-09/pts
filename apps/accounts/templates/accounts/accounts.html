@@ -44,14 +44,7 @@
             {{ request.user.display_name }}
           </p>
           <div class="mt-4.5">
-            <div class="flex items-center justify-between">
-              <h3 class="text-s7 text-primary-100">Eco Points</h3>
-              <button type="button"
-                      class="ui-text-link text-b9"
-                      onclick="document.getElementById('reset-points').showModal()">
-                Reset
-              </button>
-            </div>
+            <h3 class="text-s7 text-primary-100">Eco Points</h3>
             <p class="mt-1 flex items-baseline gap-1.5">
               <span class="text-h4 text-tertiary-80">{{ profile.eco_points|default:0 }}</span>
               <span class="text-s9 text-neutral-70">poin</span>
@@ -86,88 +79,52 @@
         </article>
       </section>
       <section class="ui-panel mt-8 p-5">
-        <div class="flex items-center justify-between gap-4">
-          <h2 class="text-h6 text-primary-100">Rekomendasi untukmu</h2>
-          <a href="{% url 'accounts:recommendations_api' %}"
-             class="ui-text-link text-b9">JSON API</a>
-        </div>
+        <h2 class="text-h6 text-primary-100">Rekomendasi untukmu</h2>
+        <p class="text-b9 mt-1 text-neutral-70">
+          Informasi diet dan alergen berasal dari tenan. Konfirmasi langsung kepada tenan jika alergimu berisiko serius.
+        </p>
         <div class="mt-4 grid gap-3 md:grid-cols-3">
           {% for food in recommendations %}
             <article class="ui-panel overflow-hidden">
               <div class="relative flex h-41.5 items-start overflow-hidden bg-surface-canvas p-3">
-                {% if food.image %}
-                  <img src="{{ food.image.url }}"
-                       alt=""
+                {% if food.photo %}
+                  <img src="{{ food.photo.url }}"
+                       alt="{{ food.name }}"
                        loading="lazy"
                        class="absolute inset-0 size-full object-cover">
                 {% endif %}
-                <span class="ui-tag ui-tag--warning relative z-10">+{{ food.eco_points }} pts</span>
+                {% if food.vegetarian %}
+                  <span class="ui-tag ui-tag--success relative z-10">Vegetarian</span>
+                {% endif %}
               </div>
-              <div class="flex min-h-44.5 flex-col gap-3 p-4">
+              <div class="flex min-h-44.5 flex-col gap-2 p-4">
                 <h3 class="text-s6 text-primary-100">{{ food.name }}</h3>
+                <p class="text-b9 text-neutral-70">{{ food.tenantId.name }}</p>
                 <p class="text-b9 text-secondary-100">{{ food.description }}</p>
+                <p class="text-b9 text-neutral-70">Alergen: {{ food.allergen_info }}</p>
+                <div class="mt-auto flex items-center justify-between gap-3 pt-2">
+                  <strong class="text-s8 text-primary-100">Rp{{ food.price }}</strong>
+                  <a href="{% url 'catalog:show_catalog_tenant' food.tenantId_id %}"
+                     class="ui-text-link text-b9">Lihat katalog</a>
+                </div>
               </div>
             </article>
           {% empty %}
             <div class="ui-panel md:col-span-3 bg-surface-subtle px-5 py-8 text-center">
               <p class="text-s7 text-primary-100">Belum ada rekomendasi yang cocok.</p>
-              <p class="text-b9 mt-1 text-neutral-70">Pilih preferensi diet atau tunggu menu Catalog tersedia.</p>
+              {% if unsupported_diets %}
+                <p class="text-b9 mt-1 text-neutral-70">
+                  Katalog saat ini belum memiliki penanda untuk {{ unsupported_diets|join:", " }}, jadi kami tidak menebak kecocokan menu.
+                </p>
+              {% else %}
+                <p class="text-b9 mt-1 text-neutral-70">Belum ada menu yang memenuhi seluruh preferensi diet dan alergimu.</p>
+              {% endif %}
             </div>
           {% endfor %}
         </div>
       </section>
-      <section class="mt-5 grid gap-5 lg:grid-cols-2">
-        <article class="ui-panel p-5">
-          <h2 class="text-h6 text-primary-100">Aktivitas Diet</h2>
-          <div class="mt-4 space-y-3">
-            {% for activity in diet_activities %}
-              <div class="border-b border-border-subtle pb-3 last:border-0">
-                <p class="text-s8 text-primary-100">{{ activity.summary }}</p>
-                <p class="text-b9 text-neutral-70">{{ activity.activity_date|date:"d M Y" }}</p>
-              </div>
-            {% empty %}
-              <p class="text-b9 text-neutral-70">Aktivitas dietmu akan muncul di sini.</p>
-            {% endfor %}
-          </div>
-        </article>
-        <article class="ui-panel p-5">
-          <h2 class="text-h6 text-primary-100">Riwayat Eco Points</h2>
-          <div class="mt-4 space-y-3">
-            {% for activity in point_activities %}
-              <div class="flex items-start justify-between gap-3 border-b border-border-subtle pb-3 last:border-0">
-                <div>
-                  <p class="text-s8 text-primary-100">{{ activity.description }}</p>
-                  <p class="text-b9 text-neutral-70">{{ activity.created_at|date:"d M Y" }}</p>
-                </div>
-                <strong class="text-s8 text-tertiary-80">{% if activity.points > 0 %}+{% endif %}{{ activity.points }}</strong>
-              </div>
-            {% empty %}
-              <p class="text-b9 text-neutral-70">Belum ada aktivitas Eco Points.</p>
-            {% endfor %}
-          </div>
-        </article>
-      </section>
     </div>
   </main>
-  <dialog id="reset-points"
-          class="ui-dialog w-full max-w-sm p-6 backdrop:bg-black/30">
-    <h2 class="text-h6 text-primary-100">Reset Eco Points?</h2>
-    <p class="text-b9 mt-2 text-neutral-70">Seluruh riwayat poinmu akan dihapus.</p>
-    <form method="post"
-          action="{% url 'accounts:reset_eco_points' %}"
-          class="mt-5 flex justify-end gap-3">
-      {% csrf_token %}
-      <button type="button"
-              class="text-s8 text-primary-100"
-              onclick="this.closest('dialog').close()">
-        Batal
-      </button>
-      <label class="sr-only">
-        <input type="checkbox" name="confirm" checked>
-      </label>
-      {% include "components/button.html" with label="Reset" variant="danger" button_type="submit" %}
-    </form>
-  </dialog>
   <script src="{% static 'django_htmx/htmx-2.min.js' %}" defer></script>
   <script>
     document.body.addEventListener("htmx:configRequest", (event) => {

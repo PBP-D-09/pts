@@ -92,14 +92,23 @@ class UserProfile(Model):
     phone_number = models.CharField(max_length=30, blank=True)
     photo = models.ImageField(upload_to="profiles/", blank=True)
     diets = models.ManyToManyField(DietPreference, blank=True, related_name="profiles")
+    eco_points_reset_at = models.DateTimeField(null=True, blank=True)
+
+    def active_point_activities(self):
+        activities = self.point_activities.all()
+        if self.eco_points_reset_at:
+            activities = activities.filter(created_at__gte=self.eco_points_reset_at)
+        return activities
 
     @property
     def eco_points(self):
-        return self.point_activities.aggregate(total=Sum("points"))["total"] or 0
+        return (
+            self.active_point_activities().aggregate(total=Sum("points"))["total"] or 0
+        )
 
     @property
     def co2_saved(self):
-        return self.point_activities.aggregate(total=Sum("co2_saved"))[
+        return self.active_point_activities().aggregate(total=Sum("co2_saved"))[
             "total"
         ] or Decimal(0)
 

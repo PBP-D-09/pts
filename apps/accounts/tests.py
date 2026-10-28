@@ -7,6 +7,8 @@ from django.test import TestCase
 from django.urls import reverse
 from PIL import Image
 
+from apps.catalog.models import MenuItem
+
 from .models import (
     CustomUser,
     DietPreference,
@@ -21,7 +23,7 @@ from .services import record_eco_points, register_tenant
 class AccountViewsTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        for code, label in [("vegan", "Vegan"), ("keto", "Keto")]:
+        for code, label in DietPreference.Code.choices:
             DietPreference.objects.get_or_create(code=code, defaults={"label": label})
 
     def create_user(self, email="user@example.com"):
@@ -36,6 +38,25 @@ class AccountViewsTests(TestCase):
             email=email,
             phone_number="081234567890",
             password="strong-password-123",
+        )
+
+    def create_menu(
+        self,
+        *,
+        tenant=None,
+        name="Nasi Sayur",
+        allergen_info="Tidak mengandung kacang",
+        vegetarian=False,
+        price=25_000,
+    ):
+        tenant = tenant or self.create_tenant().tenant
+        return MenuItem.objects.create(
+            tenantId=tenant,
+            name=name,
+            description=f"Deskripsi {name}",
+            allergen_info=allergen_info,
+            vegetarian=vegetarian,
+            price=price,
         )
 
     def test_registration_creates_profile_and_logs_in(self):
@@ -108,6 +129,19 @@ class AccountViewsTests(TestCase):
         self.client.force_login(self.create_user())
         response = self.client.get(reverse("accounts:accounts"))
         self.assertContains(response, "Preferensi Diet")
+        self.assertContains(response, "Eco Points")
+        self.assertNotContains(response, "Aktivitas Diet")
+        self.assertNotContains(response, "Riwayat Eco Points")
+        self.assertNotContains(response, "JSON API")
+        self.assertNotContains(response, 'id="reset-points"')
+        self.assertNotContains(response, ">Reset<")
+
+    def test_removed_eco_point_history_endpoint_returns_not_found(self):
+        self.client.force_login(self.create_user())
+
+        response = self.client.get("/accounts/eco-points/history/")
+
+        self.assertEqual(response.status_code, 404)
 
     def test_account_page_adapts_for_tenant(self):
         user = self.create_tenant()
@@ -350,7 +384,7 @@ class AccountViewsTests(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertTrue(UserAllergy.objects.filter(pk=allergy.pk).exists())
 
-    def test_reset_only_removes_current_users_points(self):
+    def test_reset_starts_new_statistics_without_deleting_history(self):
         user = self.create_user()
         other = self.create_user("other@example.com")
         EcoPointActivity.objects.create(
@@ -370,8 +404,28 @@ class AccountViewsTests(TestCase):
             reverse("accounts:reset_eco_points"), {"confirm": "on"}
         )
         self.assertRedirects(response, reverse("accounts:accounts"))
-        self.assertEqual(user.userprofile.point_activities.count(), 0)
+        user.userprofile.refresh_from_db()
+        self.assertEqual(user.userprofile.point_activities.count(), 2)
+        self.assertEqual(user.userprofile.eco_points, 0)
+        self.assertEqual(user.userprofile.co2_saved, 0)
+        self.assertTrue(
+            user.userprofile.point_activities.filter(
+                activity_type=EcoPointActivity.ActivityType.ADJUSTMENT,
+                description="Statistik Eco Points direset.",
+                points=0,
+            ).exists()
+        )
         self.assertEqual(other.userprofile.point_activities.count(), 1)
+
+        record_eco_points(
+            profile=user.userprofile,
+            points=10,
+            activity_type=EcoPointActivity.ActivityType.PACKAGING,
+            description="Aktivitas baru",
+            co2_saved="0.50",
+        )
+        self.assertEqual(user.userprofile.eco_points, 10)
+        self.assertEqual(str(user.userprofile.co2_saved), "0.5")
 
     def test_record_eco_points_updates_profile_aggregates(self):
         user = self.create_user()
@@ -389,10 +443,105 @@ class AccountViewsTests(TestCase):
         response = self.client.get(reverse("accounts:recommendations_api"))
         self.assertEqual(response.status_code, 302)
 
-    def test_recommendations_api_returns_safe_empty_state_without_catalog(self):
+    def test_recommendations_api_returns_safe_empty_state_without_menu(self):
         self.client.force_login(self.create_user())
         response = self.client.get(reverse("accounts:recommendations_api"))
-        self.assertJSONEqual(response.content, {"recommendations": []})
+        self.assertJSONEqual(
+            response.content, {"recommendations": [], "unsupported_diets": []}
+        )
+
+    def test_recommendations_use_real_catalog_fields_and_tenant_link(self):
+        user = self.create_user()
+        menu = self.create_menu(vegetarian=True, allergen_info="Susu")
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("accounts:recommendations_api"))
+
+        recommendation = response.json()["recommendations"][0]
+        self.assertEqual(recommendation["id"], str(menu.pk))
+        self.assertEqual(recommendation["name"], menu.name)
+        self.assertEqual(recommendation["price"], 25_000)
+        self.assertTrue(recommendation["vegetarian"])
+        self.assertEqual(recommendation["allergen_info"], "Susu")
+        self.assertEqual(recommendation["tenant_name"], "Dapur Hijau")
+        self.assertEqual(
+            recommendation["tenant_url"],
+            reverse("catalog:show_catalog_tenant", args=[menu.tenantId_id]),
+        )
+        self.assertNotIn("eco_points", recommendation)
+
+    def test_vegetarian_recommendation_excludes_non_vegetarian_menu(self):
+        user = self.create_user()
+        user.userprofile.diets.add(
+            DietPreference.objects.get(code=DietPreference.Code.VEGETARIAN)
+        )
+        vegetarian = self.create_menu(name="Gado-gado", vegetarian=True)
+        self.create_menu(
+            tenant=vegetarian.tenantId,
+            name="Ayam Bakar",
+            vegetarian=False,
+        )
+        self.client.force_login(user)
+
+        names = [
+            item["name"]
+            for item in self.client.get(reverse("accounts:recommendations_api")).json()[
+                "recommendations"
+            ]
+        ]
+
+        self.assertEqual(names, ["Gado-gado"])
+
+    def test_unsupported_diet_returns_no_recommendations_instead_of_guessing(self):
+        user = self.create_user()
+        user.userprofile.diets.add(DietPreference.objects.get(code="vegan"))
+        self.create_menu(vegetarian=True)
+        self.client.force_login(user)
+
+        payload = self.client.get(reverse("accounts:recommendations_api")).json()
+
+        self.assertEqual(payload["recommendations"], [])
+        self.assertEqual(payload["unsupported_diets"], ["Vegan"])
+
+    def test_allergy_excludes_matching_and_unknown_allergen_information(self):
+        user = self.create_user()
+        UserAllergy.objects.create(profile=user.userprofile, name="KACANG")
+        tenant = self.create_tenant().tenant
+        self.create_menu(
+            tenant=tenant,
+            name="Mengandung alergen",
+            allergen_info="Mengandung kacang tanah",
+        )
+        self.create_menu(
+            tenant=tenant,
+            name="Alergen tidak diketahui",
+            allergen_info="no allergen information listed",
+        )
+        safe_menu = self.create_menu(
+            tenant=tenant,
+            name="Menu Aman",
+            allergen_info="Mengandung susu",
+        )
+        self.client.force_login(user)
+
+        payload = self.client.get(reverse("accounts:recommendations_api")).json()
+
+        self.assertEqual(
+            [item["id"] for item in payload["recommendations"]], [str(safe_menu.pk)]
+        )
+
+    def test_recommendations_are_deterministic_and_limited_to_three(self):
+        user = self.create_user()
+        tenant = self.create_tenant().tenant
+        for name in ("D", "B", "A", "C"):
+            self.create_menu(tenant=tenant, name=name)
+        self.client.force_login(user)
+
+        payload = self.client.get(reverse("accounts:recommendations_api")).json()
+
+        self.assertEqual(
+            [item["name"] for item in payload["recommendations"]], ["A", "B", "C"]
+        )
 
     def test_login_rejects_external_next_url(self):
         user = self.create_user()

@@ -7,39 +7,73 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('accounts', '0003_tenant_photo'),
+        ("accounts", "0003_tenant_photo"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='tenantCuisine',
+            name="tenantCuisine",
             fields=[
-                ('name', models.CharField(max_length=255, primary_key=True, serialize=False)),
+                (
+                    "name",
+                    models.CharField(max_length=255, primary_key=True, serialize=False),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='MenuCategory',
+            name="MenuCategory",
             fields=[
-                ('name', models.CharField(max_length=255, primary_key=True, serialize=False)),
-                ('tenantId', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='accounts.tenant')),
+                (
+                    "name",
+                    models.CharField(max_length=255, primary_key=True, serialize=False),
+                ),
+                (
+                    "tenantId",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="accounts.tenant",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='MenuItem',
+            name="MenuItem",
             fields=[
-                ('id', models.UUIDField(default=uuid.UUID('c5a1b7da-3dda-4996-952a-153c7a031438'), editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
-                ('description', models.TextField()),
-                ('allergen_info', models.TextField(default='no allergen information listed')),
-                ('vegetarian', models.BooleanField(default=False)),
-                ('price', models.IntegerField()),
-                ('bookmarked_by', models.ManyToManyField(blank=True, related_name='bookmarked_menuitem', to=settings.AUTH_USER_MODEL)),
-                ('category', models.ManyToManyField(related_name='menu_items', to='catalog.menucategory')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.UUID("c5a1b7da-3dda-4996-952a-153c7a031438"),
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("description", models.TextField()),
+                (
+                    "allergen_info",
+                    models.TextField(default="no allergen information listed"),
+                ),
+                ("vegetarian", models.BooleanField(default=False)),
+                ("price", models.IntegerField()),
+                (
+                    "bookmarked_by",
+                    models.ManyToManyField(
+                        blank=True,
+                        related_name="bookmarked_menuitem",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "category",
+                    models.ManyToManyField(
+                        related_name="menu_items", to="catalog.menucategory"
+                    ),
+                ),
             ],
         ),
     ]

@@ -1,0 +1,37 @@
+{% extends "reviews/modal_base.html" %}
+
+{% load static lucide review_tags %}
+
+{% block modal_content %}
+  <h2 id="review-form-title">{% if review %}Edit Review{% else %}Write a Review{% endif %}</h2>
+  <p class="reviews-muted reviews-form-intro">Tell us how your meal and its packaging made you feel.</p>
+  {% if not review %}<p class="reviews-muted">{{ menu.name }}{% if order %} · {{ order.order_code }} · {{ order.get_packaging_type_display }}{% endif %}</p>{% endif %}
+  <form method="post" enctype="multipart/form-data" data-review-form>
+    {% csrf_token %}
+    <p data-form-error class="reviews-error" role="alert" hidden>Something went wrong. Please try again.</p>
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      {% if field.name == "food_rating" or field.name == "packaging_rating" %}
+        <fieldset class="reviews-rating-input"><legend>{% if field.name == "food_rating" %}How was the food?{% else %}How was the sustainable packaging?{% endif %}</legend><div class="reviews-rating-options"><img class="reviews-input-stars"
+     src="{% static field.value|star_asset %}"
+     width="116"
+     height="20"
+     alt=""
+     data-star-base="{% static 'reviews/stars-0.svg' %}">{% for radio in field %}<label>{{ radio.tag }}<span aria-hidden="true">★</span><span class="reviews-sr-only">{{ radio.choice_label }}</span></label>{% endfor %}<output>{% if field.value %}{{ field.value }} / 5{% else %}Select 1–5 stars{% endif %}</output></div>{% for error in field.errors %}<p class="ui-field__error">{{ error }}</p>{% endfor %}</fieldset>
+      {% endif %}
+    {% endfor %}
+    <div class="reviews-text-field">
+      <label for="{{ form.text.id_for_label }}">Your review</label>{{ form.text }}
+      <div class="reviews-character"><small>Share your honest experience.</small><small><span data-character-count>{{ form.text.value|default:''|length }}</span> / 500</small></div>
+      {{ form.text.errors }}
+    </div>
+    <div class="reviews-upload"><label for="{{ form.photo.id_for_label }}">Food photo</label><div class="reviews-upload-box"><div data-photo-preview {% if not review.photo %}hidden{% endif %}>{% if review.photo %}<img src="{{ review.photo.url }}"
+     alt="Current review photo"
+     width="96"
+     height="88">{% else %}<img alt="Selected food photo" width="96" height="88">{% endif %}<span data-photo-name>{% if review.photo %}Current photo{% endif %}</span><button class="reviews-danger" type="button" data-remove-photo>Remove photo</button></div><label class="reviews-photo-picker" for="{{ form.photo.id_for_label }}">{% lucide 'upload' size=24 %}<span data-upload-label>{% if review.photo %}Replace photo{% else %}Add Food Photo{% endif %}</span></label>{{ form.photo }}<small>Optional • JPG or PNG, up to 5 MB</small></div>{{ form.photo.errors }}<input type="hidden"
+       name="remove_photo"
+       value="{{ form.remove_photo.value|yesno:'true,' }}"
+       data-remove-input></div>
+    <div class="reviews-actions"><button type="button" data-close class="ui-button reviews-secondary">Cancel</button>{% if review %}{% include "components/button.html" with button_type="submit" label="Save Changes" class_name="reviews-primary" %}{% else %}{% include "components/button.html" with button_type="submit" label="Submit Review" class_name="reviews-primary" %}{% endif %}</div>
+  </form>
+{% endblock %}

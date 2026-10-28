@@ -5,15 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('catalog', '0001_initial'),
+        ("catalog", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='menuitem',
-            name='id',
-            field=models.UUIDField(default=uuid.UUID('72e24eeb-5093-4a0f-a747-68039936e5be'), editable=False, primary_key=True, serialize=False),
+            model_name="menuitem",
+            name="id",
+            field=models.UUIDField(
+                default=uuid.UUID("72e24eeb-5093-4a0f-a747-68039936e5be"),
+                editable=False,
+                primary_key=True,
+                serialize=False,
+            ),
         ),
     ]

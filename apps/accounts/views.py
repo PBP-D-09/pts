@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import DataError
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_GET, require_POST
 
@@ -28,6 +29,7 @@ from .selectors import (
     get_recommendations,
     get_selected_diet_codes,
     get_tenant_for_user,
+    get_unsupported_recommendation_diets,
 )
 from .services import (
     add_allergy,
@@ -319,18 +321,31 @@ def reset_eco_points_view(request):
 @customer_required
 @require_GET
 def get_recommendations_api(request):
-    menus = get_recommendations(get_profile_for_user(request.user))
+    profile = get_profile_for_user(request.user)
+    menus = get_recommendations(profile)
     data = [
         {
-            "id": menu.pk,
+            "id": str(menu.pk),
             "name": menu.name,
             "description": menu.description,
-            "eco_points": menu.eco_points,
-            "image_url": menu.image.url if getattr(menu, "image", None) else "",
+            "price": menu.price,
+            "photo_url": menu.photo.url if menu.photo else "",
+            "vegetarian": menu.vegetarian,
+            "allergen_info": menu.allergen_info,
+            "tenant_id": menu.tenantId_id,
+            "tenant_name": menu.tenantId.name,
+            "tenant_url": reverse(
+                "catalog:show_catalog_tenant", args=[menu.tenantId_id]
+            ),
         }
         for menu in menus
     ]
-    return JsonResponse({"recommendations": data})
+    return JsonResponse(
+        {
+            "recommendations": data,
+            "unsupported_diets": get_unsupported_recommendation_diets(profile),
+        }
+    )
 
 
 @require_GET

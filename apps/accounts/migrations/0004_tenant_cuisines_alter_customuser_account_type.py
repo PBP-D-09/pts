@@ -4,21 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0003_tenant_photo'),
-        ('catalog', '0002_alter_menuitem_id'),
+        ("accounts", "0003_tenant_photo"),
+        ("catalog", "0002_alter_menuitem_id"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='tenant',
-            name='cuisines',
-            field=models.ManyToManyField(related_name='tenants', to='catalog.tenantcuisine'),
+            model_name="tenant",
+            name="cuisines",
+            field=models.ManyToManyField(
+                related_name="tenants", to="catalog.tenantcuisine"
+            ),
         ),
         migrations.AlterField(
-            model_name='customuser',
-            name='account_type',
-            field=models.CharField(choices=[('customer', 'Pelanggan'), ('tenant', 'Tenant')], default='customer', max_length=20),
+            model_name="customuser",
+            name="account_type",
+            field=models.CharField(
+                choices=[("customer", "Pelanggan"), ("tenant", "Tenant")],
+                default="customer",
+                max_length=20,
+            ),
         ),
     ]

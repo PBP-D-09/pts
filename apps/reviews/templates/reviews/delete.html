@@ -1,0 +1,3 @@
+{% extends "reviews/modal_base.html" %}
+
+{% block modal_content %}<h2>Delete Review?</h2><p class="reviews-muted reviews-form-intro">Are you sure you want to delete this review? This action cannot be undone.</p><form method="post" data-review-form data-deleting>{% csrf_token %}<p data-form-error class="reviews-error" role="alert" hidden>Something went wrong. Please try again.</p><div class="reviews-actions"><button type="button" data-close class="ui-button reviews-secondary">Cancel</button><button type="submit" class="ui-button reviews-delete">Delete Review</button></div></form>{% endblock %}

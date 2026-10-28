@@ -4,21 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('catalog', '0004_remove_menuitem_bookmarked_by_menuitem_tenantid_and_more'),
+        ("catalog", "0004_remove_menuitem_bookmarked_by_menuitem_tenantid_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='allergenIngredient',
+            name="allergenIngredient",
             fields=[
-                ('name', models.CharField(max_length=255, primary_key=True, serialize=False)),
+                (
+                    "name",
+                    models.CharField(max_length=255, primary_key=True, serialize=False),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='menuitem',
-            name='photo',
-            field=models.ImageField(blank=True, upload_to='menu_items/'),
+            model_name="menuitem",
+            name="photo",
+            field=models.ImageField(blank=True, upload_to="menu_items/"),
         ),
     ]
