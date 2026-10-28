@@ -11,7 +11,9 @@
   <main class="reviews-shell"
         data-reviews
         data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
-        data-create-url="{% url 'reviews:create' menu.key %}">
+        data-create-url="{{ create_url }}"
+        data-order-id="{{ order.pk|default:'' }}"
+        data-open-create="{{ open_create|yesno:'true,false' }}">
     <div class="reviews-container">
       <nav aria-label="Breadcrumb" class="reviews-breadcrumb">{% lucide 'arrow-left' size=16 %} {% if menu.detail_url %}<a href="{{ menu.detail_url }}">Catalog / {{ menu.name }}</a>{% else %}<span>Reviews / {{ menu.name }}</span>{% endif %}</nav>
       <section class="ui-panel reviews-meal" aria-label="Menu information">
@@ -34,6 +36,6 @@
       <div id="reviews-dialog-content"></div>
     </dialog>
     <template id="reviews-login-prompt"><h2>Log in to continue</h2><p class="reviews-muted">Read every review, any time. Log in to write a review or mark one as helpful.</p><div class="reviews-actions"><button type="button" data-close class="ui-button reviews-secondary">Not now</button><a class="ui-button reviews-primary"
-   href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Log In</a></div></template>
+   href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}">Log In</a></div></template>
   </main>
 {% endblock %}

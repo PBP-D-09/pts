@@ -8,7 +8,7 @@ from django.db.models import Count
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
-from django.urls import NoReverseMatch, reverse
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET, require_POST
@@ -502,21 +502,7 @@ def _orders_json(result: dict) -> JsonResponse:
     )
 
 
-def _review_url(order: Order) -> str:
-    """Halaman review menu pertama di pesanan; modul reviews belum tentu terpasang."""
-    item = next((item for item in order.items.all() if item.menu_item_id), None)
-    if item is None:
-        return reverse("catalog:show_catalog")
-    try:
-        return reverse("reviews:menu", args=[str(item.menu_item_id)])
-    except NoReverseMatch:
-        if item.tenant_id:
-            return reverse("catalog:show_catalog_tenant", args=[item.tenant_id])
-        return reverse("catalog:show_catalog")
-
-
 def _order_card_html(request: HttpRequest, order: Order) -> str:
-    order.review_url = _review_url(order)
     return render_to_string(
         "orders/partials/order_card.html", {"order": order}, request=request
     )
@@ -533,8 +519,6 @@ def order_list_view(request: HttpRequest) -> HttpResponse:
         request.GET.get("page")
     )
     orders = list(page_obj)
-    for order in orders:
-        order.review_url = _review_url(order)
     status_counts = result["status_counts"]
     context = {
         **result,

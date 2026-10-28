@@ -5,6 +5,7 @@
 {% block modal_content %}
   <h2 id="review-form-title">{% if review %}Edit Review{% else %}Write a Review{% endif %}</h2>
   <p class="reviews-muted reviews-form-intro">Tell us how your meal and its packaging made you feel.</p>
+  {% if not review %}<p class="reviews-muted">{{ menu.name }}{% if order %} · {{ order.order_code }} · {{ order.get_packaging_type_display }}{% endif %}</p>{% endif %}
   <form method="post" enctype="multipart/form-data" data-review-form>
     {% csrf_token %}
     <p data-form-error class="reviews-error" role="alert" hidden>Something went wrong. Please try again.</p>

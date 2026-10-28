@@ -12,9 +12,10 @@ from PIL import Image
 
 from apps.accounts.models import Tenant
 from apps.catalog.models import MenuCategory, MenuItem
+from apps.orders.models import Order, OrderItem
 
 from .forms import ReviewForm
-from .integration import MenuContext, resolve_menu
+from .integration import MenuContext, resolve_menu, resolve_packaging
 from .models import HelpfulVote, Review
 from .selectors import rating_summary, sentiment
 
@@ -594,3 +595,408 @@ class ReviewsTests(TestCase):
             )
         self.assertEqual(Review.objects.count(), 2)
         self.assertEqual(HelpfulVote.objects.count(), 0)
+
+
+class OrdersReviewsIntegrationTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        User = get_user_model()
+        cls.customer = User.objects.create_user(email="buyer@example.com")
+        cls.other = User.objects.create_user(email="foreign@example.com")
+        cls.tenant_user = User.objects.create_user(
+            email="seller@example.com", account_type="tenant"
+        )
+        cls.tenant = Tenant.objects.create(
+            owner=cls.tenant_user, name="Kitchen", phone_number="021"
+        )
+        cls.menu = MenuItem.objects.create(
+            name="Bowl", description="Vegetables", price=30000, tenantId=cls.tenant
+        )
+        # Same name and price are deliberately insufficient to identify a menu.
+        cls.other_menu = MenuItem.objects.create(
+            name="Bowl", description="Other bowl", price=30000
+        )
+
+    def setUp(self):
+        self.key = str(self.menu.pk)
+        self.create_url = reverse("reviews:create", args=[self.key])
+        self.payload = {"food_rating": 4, "packaging_rating": 5, "text": "Fresh"}
+        self.ajax = {"HTTP_X_REVIEWS_REQUEST": "true"}
+        self.client.force_login(self.customer)
+
+    def make_order(self, *, menu=None, user=None, **fields):
+        order = Order.objects.create(
+            user=user or self.customer,
+            status=fields.pop("status", Order.Status.DELIVERED),
+            packaging_type=fields.pop("packaging_type", Order.PackagingType.REUSABLE),
+            delivery_address="Private delivery address",
+            **fields,
+        )
+        self.add_item(order, menu or self.menu)
+        return order
+
+    def add_item(self, order, menu):
+        return OrderItem.objects.create(
+            order=order,
+            menu_item=menu,
+            tenant=menu.tenantId,
+            item_name=menu.name,
+            price=menu.price,
+            quantity=1,
+            subtotal=menu.price,
+        )
+
+    def selected_url(self, order, menu=None):
+        return (
+            reverse("reviews:create", args=[str((menu or self.menu).pk)])
+            + f"?order={order.pk}"
+        )
+
+    def history_review_url(self, order, menu=None):
+        from django.utils.html import escape
+
+        return escape(
+            reverse("reviews:menu", args=[str((menu or self.menu).pk)])
+            + f"?order={order.pk}&write=1"
+        )
+
+    def test_order_entry_opens_existing_menu_modal_with_exact_create_url(self):
+        order = self.make_order()
+        url = reverse("reviews:menu", args=[self.key]) + f"?order={order.pk}&write=1"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["order"], order)
+        self.assertContains(response, 'data-open-create="true"')
+        self.assertContains(response, f'data-create-url="{self.selected_url(order)}"')
+        self.assertContains(response, 'id="reviews-dialog"')
+        self.assertNotContains(response, order.delivery_address)
+
+    def test_order_entry_cannot_expose_foreign_or_ineligible_order(self):
+        for order in [
+            self.make_order(user=self.other),
+            self.make_order(status="cancelled"),
+        ]:
+            url = (
+                reverse("reviews:menu", args=[self.key]) + f"?order={order.pk}&write=1"
+            )
+            self.assertEqual(self.client.get(url).status_code, 404)
+            self.assertEqual(self.client.get(url, **self.ajax).status_code, 404)
+        order = self.make_order()
+        url = reverse("reviews:menu", args=[self.key]) + f"?order={order.pk}&write=1"
+        self.client.logout()
+        self.assertEqual(self.client.get(url).status_code, 302)
+        self.client.force_login(self.tenant_user)
+        self.assertEqual(self.client.get(url).status_code, 403)
+
+    def test_filtering_and_pagination_preserve_order_without_reopening_modal(self):
+        order = self.make_order()
+        for i in range(6):
+            Review.objects.create(
+                author=self.customer,
+                menu_key=self.key,
+                text=f"Meal {i}",
+                food_rating=4,
+                packaging_rating=5,
+            )
+        url = reverse("reviews:menu", args=[self.key])
+        response = self.client.get(
+            url, {"order": str(order.pk), "write": "1", "rating": "4"}
+        )
+        self.assertIn(f"order={order.pk}", response.context["next_url"])
+        self.assertNotIn("write=", response.context["next_url"])
+        self.assertEqual(response.context["clear_filters_url"], f"?order={order.pk}")
+        self.assertContains(response, f'name="order" value="{order.pk}"')
+        for _, clear_url in response.context["active_filters"]:
+            self.assertIn(f"order={order.pk}", clear_url)
+            self.assertNotIn("write=", clear_url)
+        response = self.client.get(url + response.context["next_url"], **self.ajax)
+        self.assertEqual(response.context["page"].number, 2)
+        self.assertFalse(response.context["open_create"])
+
+    def test_checkout_order_item_relations_supply_packaging_after_delivery(self):
+        from apps.map.models import DeliveryAddress
+        from apps.orders.models import Cart
+        from apps.orders.services import add_item_to_cart, create_order_from_cart
+
+        address = DeliveryAddress.objects.create(
+            owner=self.customer,
+            label="Home",
+            recipient_name="Customer",
+            phone_number="0812",
+            address="QA address",
+            latitude="-6.390000",
+            longitude="106.830000",
+        )
+        cart = Cart.objects.create(user=self.customer)
+        add_item_to_cart(cart, self.menu, 2)
+        order = create_order_from_cart(self.customer, cart, "compostable", address)
+        self.assertEqual(resolve_packaging(self.key, self.customer), "")
+        order.status = Order.Status.DELIVERED
+        order.save(update_fields=["status"])
+        self.assertEqual(
+            self.client.post(self.selected_url(order), self.payload).status_code, 302
+        )
+        self.assertEqual(Review.objects.get().packaging_type, "compostable")
+
+    def test_real_order_packaging_is_saved_for_both_choices(self):
+        for packaging in Order.PackagingType.values:
+            with self.subTest(packaging=packaging):
+                order = self.make_order(packaging_type=packaging)
+                response = self.client.post(
+                    self.selected_url(order),
+                    {
+                        **self.payload,
+                        "author": self.other.pk,
+                        "menu_key": str(self.other_menu.pk),
+                        "packaging_type": "plastic",
+                    },
+                    **self.ajax,
+                )
+                self.assertEqual(response.status_code, 200)
+                review = Review.objects.latest("pk")
+                self.assertEqual(review.author, self.customer)
+                self.assertEqual(review.menu_key, self.key)
+                self.assertEqual(review.packaging_type, packaging)
+                self.assertEqual(
+                    response.json()["url"], reverse("reviews:menu", args=[self.key])
+                )
+
+    def test_all_order_statuses_follow_delivered_history_actions(self):
+        for status in Order.Status.values:
+            with self.subTest(status=status):
+                order = self.make_order(status=status)
+                expected = 200 if status == Order.Status.DELIVERED else 404
+                url = self.selected_url(order)
+                self.assertEqual(self.client.get(url).status_code, expected)
+                response = self.client.post(url, self.payload, **self.ajax)
+                self.assertEqual(response.status_code, expected)
+                history = self.client.get(
+                    reverse("orders:order_list"), {"status": status}
+                )
+                if status == Order.Status.DELIVERED:
+                    self.assertContains(history, self.history_review_url(order))
+                else:
+                    self.assertNotContains(history, "Write a review")
+        self.assertEqual(Review.objects.count(), 1)
+
+    def test_no_purchase_remains_allowed_without_packaging_claim(self):
+        response = self.client.post(self.create_url, self.payload)
+        self.assertRedirects(response, reverse("reviews:menu", args=[self.key]))
+        self.assertEqual(Review.objects.get().packaging_type, "")
+
+    def test_unselected_packaging_ignores_non_delivered_orders(self):
+        for status in Order.Status.values:
+            if status != Order.Status.DELIVERED:
+                self.make_order(status=status, packaging_type="compostable")
+        self.assertEqual(resolve_packaging(self.key, self.customer), "")
+        self.make_order()
+        self.assertEqual(resolve_packaging(self.key, self.customer), "reusable")
+
+    def test_another_customer_and_another_menu_never_supply_packaging(self):
+        self.make_order(user=self.other)
+        self.make_order(menu=self.other_menu)
+        self.assertEqual(resolve_packaging(self.key, self.customer), "")
+        self.client.post(self.create_url, self.payload, **self.ajax)
+        self.assertEqual(Review.objects.get().packaging_type, "")
+
+    def test_foreign_order_rejected_without_disclosing_order_details(self):
+        order = self.make_order(user=self.other)
+        for method in [self.client.get, self.client.post]:
+            data = {} if method == self.client.get else self.payload
+            response = method(
+                self.selected_url(order),
+                **({"data": data} if data else {}),
+                **self.ajax,
+            )
+            self.assertEqual(response.status_code, 404)
+            self.assertNotContains(response, order.delivery_address, status_code=404)
+            self.assertNotContains(response, order.order_code, status_code=404)
+        self.assertFalse(Review.objects.exists())
+
+    def test_order_for_same_named_different_menu_rejected(self):
+        order = self.make_order(menu=self.other_menu)
+        self.assertEqual(self.client.get(self.selected_url(order)).status_code, 404)
+        self.assertEqual(
+            self.client.post(self.selected_url(order), self.payload).status_code, 404
+        )
+        self.assertFalse(Review.objects.exists())
+
+    def test_invalid_or_missing_explicit_order_never_falls_back(self):
+        self.make_order()
+        for order_id in ["", "bad-id", str(uuid4()), "1", "x" * 101]:
+            with self.subTest(order_id=order_id):
+                url = f"{self.create_url}?order={order_id}"
+                self.assertEqual(self.client.get(url).status_code, 404)
+                self.assertEqual(self.client.post(url, self.payload).status_code, 404)
+        self.assertFalse(Review.objects.exists())
+
+    def test_multiple_delivered_orders_with_same_packaging_are_unambiguous(self):
+        order = self.make_order()
+        self.make_order()
+        # Duplicate lines must not change attribution or DISTINCT semantics.
+        self.add_item(order, self.menu)
+        with self.assertNumQueries(1):
+            self.assertEqual(resolve_packaging(self.key, self.customer), "reusable")
+
+    def test_differing_packaging_requires_explicit_order_without_guessing_latest(self):
+        older = self.make_order()
+        newer = self.make_order(packaging_type="compostable")
+        self.assertEqual(resolve_packaging(self.key, self.customer), "")
+        self.client.post(self.create_url, self.payload)
+        self.assertEqual(Review.objects.latest("pk").packaging_type, "")
+        # Either order can be selected, even when it is not the newest purchase.
+        for order in [newer, older]:
+            self.client.post(self.selected_url(order), self.payload)
+            self.assertEqual(
+                Review.objects.latest("pk").packaging_type, order.packaging_type
+            )
+
+    def test_multi_menu_order_has_a_link_for_each_exact_menu(self):
+        order = self.make_order()
+        self.add_item(order, self.other_menu)
+        history = self.client.get(reverse("orders:order_list"))
+        self.assertContains(history, "Write a review</a>", count=2)
+        for menu in [self.menu, self.other_menu]:
+            url = self.selected_url(order, menu)
+            self.assertContains(
+                history, f'href="{self.history_review_url(order, menu)}"', count=1
+            )
+            form = self.client.get(url)
+            self.assertEqual(form.context["menu"].key, str(menu.pk))
+            self.assertContains(form, order.order_code)
+            self.assertNotContains(form, order.delivery_address)
+            self.assertEqual(self.client.post(url, self.payload).status_code, 302)
+            self.assertEqual(Review.objects.latest("pk").menu_key, str(menu.pk))
+
+    def test_form_error_and_ajax_keep_order_and_menu_context(self):
+        order = self.make_order(packaging_type="compostable")
+        url = self.selected_url(order)
+        response = self.client.get(url, **self.ajax)
+        self.assertEqual(response.context["order"], order)
+        self.assertContains(response, "Compostable box")
+        response = self.client.post(url, {**self.payload, "text": " "}, **self.ajax)
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.context["order"], order)
+        self.assertFalse(Review.objects.exists())
+        self.assertEqual(
+            self.client.post(url, self.payload, **self.ajax).status_code, 200
+        )
+        self.assertEqual(Review.objects.get().packaging_type, "compostable")
+
+    def test_recheck_order_at_submit_after_status_or_ownership_changes(self):
+        order = self.make_order()
+        url = self.selected_url(order)
+        self.assertEqual(self.client.get(url).status_code, 200)
+        order.status = Order.Status.CANCELLED
+        order.save(update_fields=["status"])
+        self.assertEqual(self.client.post(url, self.payload).status_code, 404)
+        order.status, order.user = Order.Status.DELIVERED, self.other
+        order.save(update_fields=["status", "user"])
+        self.assertEqual(self.client.post(url, self.payload).status_code, 404)
+        self.assertFalse(Review.objects.exists())
+
+    def test_posted_order_id_cannot_override_url_order(self):
+        owned = self.make_order()
+        foreign = self.make_order(user=self.other, packaging_type="compostable")
+        self.client.post(
+            self.selected_url(owned),
+            {**self.payload, "order": foreign.pk, "order_id": foreign.pk},
+        )
+        self.assertEqual(Review.objects.get().packaging_type, "reusable")
+
+    def test_snapshot_survives_order_changes_deletion_and_review_edit(self):
+        order = self.make_order()
+        self.client.post(self.selected_url(order), self.payload)
+        review = Review.objects.get()
+        self.make_order(packaging_type="compostable")
+        order.delete()
+        response = self.client.post(
+            reverse("reviews:edit", args=[review.pk]),
+            {**self.payload, "packaging_type": "compostable", "text": "Updated"},
+        )
+        self.assertEqual(response.status_code, 302)
+        review.refresh_from_db()
+        self.assertEqual(review.packaging_type, "reusable")
+        self.assertEqual(review.text, "Updated")
+
+    def test_deleted_menu_is_not_replaced_by_same_named_menu(self):
+        order = self.make_order()
+        url = self.selected_url(order)
+        self.client.post(url, self.payload)
+        review = Review.objects.get()
+        self.menu.delete()
+        self.assertIsNone(order.items.get().menu_item_id)
+        self.assertNotContains(
+            self.client.get(reverse("orders:order_list")), "Write a review"
+        )
+        self.assertEqual(self.client.get(url).status_code, 404)
+        self.assertEqual(self.client.post(url, self.payload).status_code, 404)
+        self.assertEqual(resolve_packaging(str(self.other_menu.pk), self.customer), "")
+        self.assertTrue(Review.objects.filter(pk=review.pk).exists())
+        self.assertEqual(
+            self.client.post(reverse("reviews:delete", args=[review.pk])).status_code,
+            302,
+        )
+
+    def test_partly_deleted_order_only_links_remaining_menu(self):
+        order = self.make_order()
+        self.add_item(order, self.other_menu)
+        self.menu.delete()
+        history = self.client.get(reverse("orders:order_list"))
+        self.assertContains(history, "Write a review</a>", count=1)
+        self.assertContains(history, self.history_review_url(order, self.other_menu))
+
+    def test_guest_and_tenant_cannot_claim_packaging_or_write_from_order(self):
+        from django.contrib.auth.models import AnonymousUser
+
+        order = self.make_order()
+        for user in [AnonymousUser(), self.tenant_user]:
+            with self.assertNumQueries(0):
+                self.assertEqual(resolve_packaging(self.key, user), "")
+        self.client.logout()
+        response = self.client.get(self.selected_url(order))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("order%3D", response.url)
+        self.assertEqual(
+            self.client.post(
+                self.selected_url(order), self.payload, **self.ajax
+            ).status_code,
+            401,
+        )
+        self.client.force_login(self.tenant_user)
+        self.assertEqual(self.client.get(self.selected_url(order)).status_code, 403)
+        self.assertEqual(
+            self.client.post(self.selected_url(order), self.payload).status_code, 403
+        )
+        self.assertFalse(Review.objects.exists())
+
+    def test_adapter_rejects_invalid_packaging_in_order_data(self):
+        order = self.make_order(packaging_type="plastic")
+        with self.assertRaises(ImproperlyConfigured):
+            resolve_packaging(self.key, self.customer, order_id=str(order.pk))
+        self.assertFalse(Review.objects.exists())
+
+    def test_container_return_does_not_change_original_packaging(self):
+        order = self.make_order(reusable_returned=True)
+        self.assertEqual(
+            resolve_packaging(self.key, self.customer, order_id=str(order.pk)),
+            "reusable",
+        )
+
+    def test_history_and_ajax_cards_never_show_another_customers_links(self):
+        from django.test import RequestFactory
+
+        from apps.orders.views import _order_card_html
+
+        owned = self.make_order()
+        foreign = self.make_order(user=self.other)
+        history = self.client.get(reverse("orders:order_list"))
+        self.assertContains(history, self.history_review_url(owned))
+        self.assertNotContains(history, str(foreign.pk))
+        request = RequestFactory().get("/orders/")
+        request.user = self.customer
+        request.session = {}
+        html = _order_card_html(request, owned)
+        self.assertIn(self.history_review_url(owned), html)
+        owned.status = Order.Status.CANCELLED
+        self.assertNotIn("Write a review", _order_card_html(request, owned))

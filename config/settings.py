@@ -179,3 +179,4 @@ NOMINATIM_USER_AGENT = os.getenv(
 
 # Real Catalog UUIDs and metadata; never accept placeholder menus.
 REVIEWS_MENU_RESOLVER = "apps.reviews.integration.catalog_menu"
+REVIEWS_PACKAGING_RESOLVER = "apps.reviews.integration.order_packaging"

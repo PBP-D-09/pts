@@ -1,6 +1,8 @@
 # Reviews — SustainaBowl
 
-Modul Django Templates + AJAX (Fetch), menggunakan database Django, Accounts, dan Catalog asli. Branch kerja `reviews`. Tidak ada framework frontend tambahan.
+Modul Django Templates + AJAX (Fetch), menggunakan database Django, Accounts, Catalog, dan Orders asli. Branch kerja `reviews`. Tidak ada framework frontend tambahan.
+
+**Status terbaru (28 Oktober 2026):** integrasi Orders aktif; 54 tests Reviews lulus. Detail perubahan, kebijakan, baseline, dan keterbatasan tersedia di [laporan integrasi Orders](INTEGRATION_REPORT.md). Laporan QA 26 Oktober di bawah dipertahankan sebagai catatan historis.
 
 ## Menjalankan
 
@@ -66,17 +68,28 @@ Kebijakan menu terhapus / identifier lama:
 - Author dan tenant author diambil melalui join; helpful count dan status vote dianotasi sehingga tidak ada query per kartu.
 - Empty, no matching, active filters, loading, request error/retry, publish/update/delete toast, selected helpful. Native dialog menyediakan focus trap/Escape; teks pengguna di-escape.
 
-## Kontrak Orders (opsional, belum tersedia)
+## Integrasi Orders (aktif)
 
 ```python
-REVIEWS_PACKAGING_RESOLVER = "apps.orders.integrations.resolve_review_packaging"
+REVIEWS_PACKAGING_RESOLVER = "apps.reviews.integration.order_packaging"
 ```
 
-**Jangan pasang setting ini sebelum callable backend tersedia.** Callable menerima `(menu_key: str, user: CustomUser)` dan mengembalikan `"reusable"`, `"compostable"`, atau `""` bila tidak ada pesanan relevan. Nilai lain ditolak sebagai kesalahan konfigurasi.
+Adapter ada di modul Reviews agar implementasi bisnis Orders tidak perlu diubah. `order_packaging(menu_key, user, *, order_id=None)` mengembalikan `"reusable"`, `"compostable"`, atau `""`. Wrapper `resolve_packaging` tetap memvalidasi nilai; hasil lain menghasilkan configuration error. Adapter dua argumen lama tetap dapat dipakai untuk pemanggilan tanpa order eksplisit; adapter pengganti yang mendukung alur Orders wajib menerima keyword `order_id`. Setting kosong tetap menghasilkan snapshot kosong, tanpa menerima klaim kemasan dari browser.
 
-Adapter harus membaca pesanan asli milik user, mencocokkan UUID menu, dan mengambil jenis kemasan dari data pesanan. Tim Orders masih perlu menyediakan relasi user/menu, status pesanan yang memenuhi syarat, packaging type yang konsisten, dan aturan pemilihan pesanan bila customer membeli menu sama beberapa kali. Kontrak saat ini hanya menghasilkan snapshot label, belum menyimpan order ID.
+Sumber relasi: `Order.user` → customer terautentikasi, `Order.items` → `OrderItem.menu_item_id` → UUID `MenuItem`, dan `Order.packaging_type`. Nama menu, harga, tenant penjual, Cart, serta field POST tidak dijadikan bukti pembelian. Guest dan tenant tidak memperoleh kemasan melalui adapter ini.
 
-Tanpa adapter: rating packaging tetap dapat diberikan; `packaging_type` kosong dan badge tidak ditampilkan. Form tidak menerima klaim packaging dari browser. Snapshot diambil saat create dan tidak berubah saat edit. Tidak ada model/data pesanan fiktif, verified purchase, pembatasan wajib membeli, atau validasi kepemilikan pesanan yang diklaim sudah berjalan.
+Aturan berdasarkan requirement Reviews dan perilaku Orders aktual:
+
+- Reviews tetap boleh dibuat tanpa pembelian: requirement tidak mensyaratkan verified purchase. Tidak ada pembatasan baru satu review per menu/order.
+- Hanya `delivered` digunakan untuk atribusi kemasan, mengikuti tombol review yang sudah tersedia pada status itu di Orders. `pending`, `processing`, `on_the_way`, dan `cancelled` diabaikan pada pencarian otomatis; pilihan eksplisit ke status tersebut menghasilkan 404. Ini aturan integrasi yang diturunkan dari implementasi Orders, bukan klaim adanya requirement delivered-only untuk seluruh CRUD Reviews.
+- Orders menampilkan **Write a review per item menu yang masih ada**. Tautan `/reviews/menu/<uuid>/?order=<order-uuid>&write=1` membuka menu yang tepat dan modal lama. Bukan lagi memilih item pertama. Kondisi status dan menu pada kartu HTML/AJAX memakai template yang sama; kelas visual yang ada dipakai ulang, tanpa CSS atau perubahan Figma.
+- Order eksplisit divalidasi saat membuka halaman, membuka form, dan submit. Harus milik customer session, delivered, dan mengandung UUID menu tersebut. ID kosong, salah format, tidak ditemukan, milik orang lain, atau menu tidak cocok → 404 tanpa fallback ke order lain. Parameter POST `order`, `order_id`, author, menu, dan kemasan tidak mengganti konteks URL/session.
+- Tanpa order eksplisit (misalnya dari Catalog), ambil jenis kemasan berbeda dari semua delivered orders milik user untuk menu itu. Satu jenis → snapshot jenis itu, termasuk bila ada beberapa pembelian. Tidak ada pembelian atau reusable dan compostable sama-sama ada → snapshot kosong; jangan menebak pembelian terbaru. User dapat memilih order yang tepat melalui Orders. Tidak digunakan `created_at`/`updated_at` sebagai tanggal delivered karena model tidak menyimpan `delivered_at`.
+- Konteks order dipertahankan saat filter, sort, pagination, clear filters, error form 422, login redirect, dan submit AJAX. Flag `write` dihapus pada hasil/filter/pagination agar modal tidak terbuka ulang. Form menampilkan nama menu, kode order, dan kemasan; alamat dan rincian pribadi pesanan tidak dirender.
+- Snapshot `packaging_type` diambil hanya saat create dan tidak berubah saat edit, order dihapus, atau wadah dikembalikan. Tidak ada backfill label pada review lama.
+- `OrderItem.menu_item` memakai SET_NULL saat menu dihapus. Baris itu tetap tampil dalam riwayat dengan snapshot nama, tetapi tidak mempunyai tautan review. Menu bernama sama tidak digunakan sebagai pengganti. Review lama tetap tersimpan dan dapat dihapus oleh pemilik sesuai kebijakan orphan Catalog di atas.
+
+Skema tetap: `Review` menyimpan UUID menu sebagai string dan jenis kemasan sebagai snapshot, **belum menyimpan FK/ID order asal**. Karena itu badge bukan bukti verified purchase yang dapat diaudit ulang per review. Tidak ada migration atau perubahan database aplikasi untuk integrasi ini. Lihat risiko konkurensi, penyimpanan foto, dan batas verifikasi dalam laporan terbaru.
 
 ## Routes
 
@@ -98,7 +111,7 @@ UI lama dipertahankan: max-width 1120, brand #2a835f, accent #12544f, teks #0923
 
 Browser inspeksi dilakukan pada viewport sekitar 654 px: filter dua kolom, modal scrollable, context menu/foto dan state utama terbaca. Tidak mengklaim pixel-perfect semua viewport atau screenshot regression otomatis. Shared header/footer dan native dropdown tetap mengikuti implementasi repository/platform; tidak dilakukan redesign.
 
-## Laporan QA — 26 Oktober 2026
+## Laporan QA — 26 Oktober 2026 (historis)
 
 ```sh
 uv run python manage.py check
@@ -133,7 +146,7 @@ Browser QA memakai server loopback terpisah dan database/media sementara dengan 
 
 Upload/replace/remove foto dan invalid requests diverifikasi pada tests backend; dialog file OS, network failure injection/retry, serta seluruh viewport desktop/mobile belum diverifikasi lewat browser dalam audit ini.
 
-## Perubahan dan kesiapan review
+## Perubahan dan kesiapan review — 26 Oktober 2026 (historis)
 
 File diubah: `apps/reviews/integration.py`, `models.py`, `selectors.py`, `views.py`, `tests.py`, `static/reviews/reviews.js`, `templates/reviews/modal_base.html`, README ini; `config/settings.py`; dan dua tautan pada `apps/catalog/templates/catalog/catalog_tenant.html`. Tidak ada perubahan model/view Catalog, Accounts, Map, Orders, shared Design System, atau migrations.
 

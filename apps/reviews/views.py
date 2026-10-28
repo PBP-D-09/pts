@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from .forms import ReviewFilterForm, ReviewForm
-from .integration import resolve_menu, resolve_packaging
+from .integration import resolve_menu, resolve_packaging, resolve_review_order
 from .models import HelpfulVote, Review
 from .selectors import rating_summary, review_queryset
 
@@ -36,6 +36,15 @@ def customer(request):
 @require_GET
 def reviews(request, menu_key):
     menu = resolve_menu(menu_key)
+    order = None
+    if "order" in request.GET:
+        denied = customer(request)
+        if denied is not None:
+            return denied
+        order = resolve_review_order(menu.key, request.user, request.GET["order"])
+    create_url = reverse("reviews:create", args=[menu.key])
+    if order:
+        create_url += f"?order={order.pk}"
     filters = ReviewFilterForm(request.GET or None)
     if filters.is_bound and not filters.is_valid():
         return render(
@@ -45,6 +54,7 @@ def reviews(request, menu_key):
     qs = review_queryset(menu_key, request.user, values)
     page = Paginator(qs, 4).get_page(request.GET.get("page"))
     params = request.GET.copy()
+    params.pop("write", None)
     if page.has_next():
         params["page"] = page.next_page_number()
     active = []
@@ -53,6 +63,7 @@ def reviews(request, menu_key):
             clear = request.GET.copy()
             clear.pop(name, None)
             clear.pop("page", None)
+            clear.pop("write", None)
             active.append(
                 (
                     dict(filters.fields[name].choices)[values[name]],
@@ -61,6 +72,10 @@ def reviews(request, menu_key):
             )
     context = {
         "menu": menu,
+        "order": order,
+        "create_url": create_url,
+        "open_create": request.GET.get("write") == "1",
+        "clear_filters_url": f"?order={order.pk}" if order else "?",
         "page": page,
         "summary": rating_summary(menu_key),
         "filter_form": filters,
@@ -79,19 +94,28 @@ def create_review(request, menu_key):
     if denied is not None:
         return denied
     menu = resolve_menu(menu_key)
+    # Keep the explicit order in the URL through GET, form errors and AJAX POST.
+    # A supplied but invalid/ineligible order must never fall back to another one.
+    order = (
+        resolve_review_order(menu.key, request.user, request.GET["order"])
+        if "order" in request.GET
+        else None
+    )
     form = ReviewForm(
         request.POST if request.method == "POST" else None, request.FILES or None
     )
     if request.method == "POST" and form.is_valid():
         review = form.save(commit=False)
         review.menu_key, review.author = menu.key, request.user
-        review.packaging_type = resolve_packaging(menu_key, request.user)
+        review.packaging_type = resolve_packaging(
+            menu.key, request.user, order_id=str(order.pk) if order else None
+        )
         review.save()
         return mutation_success(request, menu_key, "Your review has been published.")
     return render(
         request,
         "reviews/form.html",
-        {"form": form, "menu": menu},
+        {"form": form, "menu": menu, "order": order},
         status=422 if request.method == "POST" else 200,
     )
 

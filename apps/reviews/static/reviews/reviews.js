@@ -28,6 +28,9 @@
         if (!dialog.open) dialog.showModal();
     }
     async function loadReviews(url, append = false) {
+        url = new URL(url, location.href);
+        if (root.dataset.orderId) url.searchParams.set('order', root.dataset.orderId);
+        url.searchParams.delete('write');
         listController?.abort();
         const controller = new AbortController();
         listController = controller;
@@ -265,4 +268,5 @@
             if (!isHelpful || !button.querySelector('span')) button.innerHTML = label;
         }
     });
+    if (root.dataset.openCreate === 'true') openModal(root.dataset.createUrl);
 })();
