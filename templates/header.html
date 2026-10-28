@@ -3,10 +3,12 @@
 {% url 'accounts:login' as login_url %}
 {% url 'accounts:accounts' as accounts_url %}
 {% url 'catalog:show_catalog' as catalog_url %}
+{% url 'orders:cart' as cart_url %}
+{% url 'orders:order_list' as orders_url %}
 <header class="sticky top-0 z-30 border-b border-tertiary-10 bg-neutral-10/95 backdrop-blur">
   <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8 lg:h-22 lg:px-14">
     <a class="text-h5 text-primary-80"
-       href="{% url "landing:landing" %}">Sustaina<span class="text-tertiary-80">Bowl</span></a>
+       href="{% url 'landing:landing' %}">Sustaina<span class="text-tertiary-80">Bowl</span></a>
     <nav class="text-s6 hidden items-center gap-8 text-tertiary-80 md:flex"
          aria-label="Navigasi utama">
       <a href="{% url 'landing:landing' %}"
@@ -17,39 +19,54 @@
          class="flex items-center gap-1.5 hover:text-primary-80">{% lucide "store" size=20 stroke_width=2 %} Tenants</a>
       <a href="{% url 'map:map' %}"
          class="flex items-center gap-1.5 hover:text-primary-80">{% lucide "map" size=20 stroke_width=2 %} Map</a>
+      {% if user.is_authenticated %}
+        <a href="{{ orders_url }}"
+           class="flex items-center gap-1.5 hover:text-primary-80">{% lucide "receipt-text" size=20 stroke_width=2 %} My orders</a>
+      {% endif %}
     </nav>
-    {% if user.is_authenticated %}
-      <details class="relative hidden md:block">
-        <summary class="text-s7 flex cursor-pointer list-none items-center gap-1 text-primary-80 [&::-webkit-details-marker]:hidden">
-          <span id="header-profile-name-desktop">{{ user.display_name }}</span>
-          {% lucide "chevron-down" size=20 stroke_width=2 %}
-        </summary>
-        <div class="ui-panel absolute right-0 top-9 z-40 grid w-48 gap-1 p-2">
-          <a href="{{ accounts_url }}"
-             class="rounded px-3 py-2 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80">
-            {% if user.is_tenant %}Tenant Accounts{% else %}Accounts{% endif %}
-          </a>
-          {% if user.is_tenant %}
-            <a href="{% url 'map:tenant_location' %}"
-               class="rounded px-3 py-2 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80">Lokasi Tenan</a>
-          {% else %}
-            <a href="{% url 'map:addresses' %}"
-               class="rounded px-3 py-2 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80">Alamat Saya</a>
-          {% endif %}
-          <form method="post" action="{% url 'accounts:logout' %}">
-            {% csrf_token %}
-            <button type="submit"
-                    class="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-red-70 hover:bg-red-10">
-              {% lucide "log-out" size=16 stroke_width=2 %} Keluar
-            </button>
-          </form>
-        </div>
-      </details>
-    {% else %}
-      <div class="hidden md:block">
-        {% include "components/button.html" with href=login_url label="Login" class_name="min-h-0 px-4 py-2" %}
-      </div>
-    {% endif %}
+    <div class="hidden items-center gap-4 md:flex">
+      <a href="{{ cart_url }}"
+         class="flex items-center gap-2 rounded-lg border border-primary-30 bg-primary-10/40 px-3.5 py-1.5 text-s7 font-medium text-primary-90 transition hover:bg-primary-20"
+         title="Keranjang Belanja">
+        {% lucide "shopping-bag" size=18 stroke_width=2 %}
+        <span>Cart</span>
+        <span class="text-s9 inline-flex h-5.5 min-w-5.5 items-center justify-center rounded-full bg-tertiary-40 px-1.5 tabular-nums text-primary-100"
+              {% if not cart_item_count %}hidden{% endif %}
+              data-cart-count>{{ cart_item_count }}</span>
+      </a>
+      {% if user.is_authenticated %}
+        <details class="relative">
+          <summary class="text-s7 flex cursor-pointer list-none items-center gap-1 text-primary-80 [&::-webkit-details-marker]:hidden">
+            <span id="header-profile-name-desktop">{{ user.display_name }}</span>
+            {% lucide "chevron-down" size=20 stroke_width=2 %}
+          </summary>
+          <div class="ui-panel absolute right-0 top-9 z-40 grid w-48 gap-1 p-2">
+            <a href="{{ accounts_url }}"
+               class="rounded px-3 py-2 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80">
+              {% if user.is_tenant %}Tenant Accounts{% else %}Accounts{% endif %}
+            </a>
+            <a href="{{ orders_url }}"
+               class="rounded px-3 py-2 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80">My orders</a>
+            {% if user.is_tenant %}
+              <a href="{% url 'map:tenant_location' %}"
+                 class="rounded px-3 py-2 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80">Lokasi Tenan</a>
+            {% else %}
+              <a href="{% url 'map:addresses' %}"
+                 class="rounded px-3 py-2 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80">Alamat Saya</a>
+            {% endif %}
+            <form method="post" action="{% url 'accounts:logout' %}">
+              {% csrf_token %}
+              <button type="submit"
+                      class="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-red-70 hover:bg-red-10">
+                {% lucide "log-out" size=16 stroke_width=2 %} Keluar
+              </button>
+            </form>
+          </div>
+        </details>
+      {% else %}
+        <div>{% include "components/button.html" with href=login_url label="Login" class_name="min-h-0 px-4 py-2" %}</div>
+      {% endif %}
+    </div>
     <div class="relative md:hidden" data-mobile-nav>
       <button class="ui-icon-button ui-icon-button--ghost size-10"
               type="button"
@@ -68,12 +85,21 @@
         <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
            href="{% url 'landing:landing' %}">Home</a>
         <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
-           href="{% url 'landing:landing' %}">Catalog</a>
+           href="{{ catalog_url }}">Catalog</a>
         <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
-           href="{% url 'landing:landing' %}">Tenants</a>
+           href="{% url 'landing:landing' %}#tentang">Tenants</a>
         <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
            href="{% url 'map:map' %}">Map</a>
+        <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80 flex items-center justify-between"
+           href="{{ cart_url }}">
+          <span>Cart</span>
+          <span class="text-s9 inline-flex h-5.5 min-w-5.5 items-center justify-center rounded-full bg-tertiary-40 px-1.5 tabular-nums text-primary-100"
+                {% if not cart_item_count %}hidden{% endif %}
+                data-cart-count>{{ cart_item_count }}</span>
+        </a>
         {% if user.is_authenticated %}
+          <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
+             href="{{ orders_url }}">My orders</a>
           <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
              href="{% if user.is_tenant %}{% url 'map:tenant_location' %}{% else %}{% url 'map:addresses' %}{% endif %}">
             {% if user.is_tenant %}Lokasi Tenan{% else %}Alamat Saya{% endif %}

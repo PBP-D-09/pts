@@ -88,6 +88,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.orders.context_processors.cart",
             ],
         },
     },
@@ -157,6 +158,9 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 TAILWIND_APP_NAME = "apps.theme"
+NPM_BIN_PATH = os.getenv(
+    "NPM_BIN_PATH", r"C:\Program Files\nodejs\npm.cmd" if os.name == "nt" else "npm"
+)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
