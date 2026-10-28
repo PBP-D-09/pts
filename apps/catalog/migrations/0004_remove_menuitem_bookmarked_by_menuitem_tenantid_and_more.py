@@ -6,39 +6,54 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0004_tenant_cuisines_alter_customuser_account_type'),
-        ('catalog', '0003_alter_menuitem_id'),
+        ("accounts", "0004_tenant_cuisines_alter_customuser_account_type"),
+        ("catalog", "0003_alter_menuitem_id"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='menuitem',
-            name='bookmarked_by',
+            model_name="menuitem",
+            name="bookmarked_by",
         ),
         migrations.AddField(
-            model_name='menuitem',
-            name='tenantId',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='menus', to='accounts.tenant'),
+            model_name="menuitem",
+            name="tenantId",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="menus",
+                to="accounts.tenant",
+            ),
         ),
         migrations.AlterField(
-            model_name='menucategory',
-            name='tenantId',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='menu_categories', to='accounts.tenant'),
+            model_name="menucategory",
+            name="tenantId",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="menu_categories",
+                to="accounts.tenant",
+            ),
         ),
         migrations.RemoveField(
-            model_name='menuitem',
-            name='category',
+            model_name="menuitem",
+            name="category",
         ),
         migrations.AlterField(
-            model_name='menuitem',
-            name='id',
-            field=models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False),
+            model_name="menuitem",
+            name="id",
+            field=models.UUIDField(
+                default=uuid.uuid4, editable=False, primary_key=True, serialize=False
+            ),
         ),
         migrations.AddField(
-            model_name='menuitem',
-            name='category',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='menu_items', to='catalog.menucategory'),
+            model_name="menuitem",
+            name="category",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="menu_items",
+                to="catalog.menucategory",
+            ),
         ),
     ]
