@@ -128,6 +128,7 @@
                                         <p class="mt-auto pt-2 text-lg font-bold text-orange-700">
                                             {{ menuItem.price }}
                                         </p>
+                                        <a href="{% url 'reviews:menu' menu_key=menuItem.pk %}" class="ui-button ui-button--secondary" aria-label="Read reviews for {{ menuItem.name }}">Read Reviews</a>
                                     </div>
                                 </article>
                             {% endfor %}
@@ -184,6 +185,7 @@
                                             <p class="mt-auto pt-2 text-lg font-bold text-orange-700">
                                                 {{ menuItem.price }}
                                             </p>
+                                            <a href="{% url 'reviews:menu' menu_key=menuItem.pk %}" class="ui-button ui-button--secondary" aria-label="Read reviews for {{ menuItem.name }}">Read Reviews</a>
                                         </div>
                                     </article>
                                 {% endfor %}

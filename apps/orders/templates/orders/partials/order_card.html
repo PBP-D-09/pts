@@ -20,7 +20,13 @@
   <ul class="grid gap-1">
     {% for item in order.items.all %}
       <li class="text-b7 flex justify-between gap-4 text-primary-100">
-        <span>{{ item.quantity }}× {{ item.item_name }}</span>
+        <span>{{ item.quantity }}× {{ item.item_name }}
+          {% if order.status == "delivered" and item.menu_item_id %}
+            <a href="{% url 'reviews:menu' item.menu_item_id %}?order={{ order.id }}&amp;write=1"
+               class="text-s8 flex h-8 items-center rounded-md px-3 text-primary-80 hover:bg-surface-subtle hover:text-primary-90"
+               aria-label="Write a review for {{ item.item_name }}">Write a review</a>
+          {% endif %}
+        </span>
         <span class="shrink-0 tabular-nums">{{ item.formatted_subtotal }}</span>
       </li>
     {% endfor %}
@@ -54,10 +60,6 @@
       {% if order.status == "on_the_way" %}
         <a href="{% url 'map:map' %}"
            class="ui-button text-s8 min-h-8 border border-neutral-40 bg-neutral-10 px-3 py-1 text-primary-100 hover:bg-surface-subtle">Track order</a>
-      {% endif %}
-      {% if order.status == "delivered" %}
-        <a href="{{ order.review_url }}"
-           class="text-s8 flex h-8 items-center rounded-md px-3 text-primary-80 hover:bg-surface-subtle hover:text-primary-90">Write a review</a>
       {% endif %}
       {% if order.status == "delivered" or order.status == "cancelled" %}
         <form method="post" action="{% url 'orders:reorder' order.id %}">
