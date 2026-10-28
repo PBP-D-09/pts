@@ -8,7 +8,6 @@ class MenuItemForm(ModelForm):
             "photo",
             "name",
             "description",
-            "category",
             "allergen_info",
             "vegetarian",
             "price",
@@ -18,7 +17,6 @@ class MenuItemForm(ModelForm):
             "photo": "Photo",
             "name": "Menu name",
             "description": "Description",
-            "category": "Menu category",
             "allergen_info": "Allergen information",
             "vegetarian": "Vegetarian",
             "price": "Price",
@@ -130,3 +128,23 @@ class MenuItemForm(ModelForm):
             self.fields["category"].queryset = (
                 MenuCategory.objects.filter(tenantId=tenant)
             )
+
+class MenuCategoryForm(ModelForm):
+    class Meta:
+        model = MenuCategory
+        fields = ["name"]
+
+        labels = {
+            "name": "Category Name",
+        }
+
+        widgets = {
+            "name": TextInput(attrs={
+                "placeholder": "e.g. Main Course",
+                "class": (
+                    "w-full rounded-xl border border-gray-300 px-4 py-3 "
+                    "text-gray-900 outline-none transition "
+                    "focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                ),
+            }),
+        }

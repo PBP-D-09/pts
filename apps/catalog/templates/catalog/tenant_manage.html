@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block meta %}
+    <title>Manage Menu</title>
+{% endblock meta %}
+
+{% block content %}
+<main class="mx-auto min-h-screen w-full max-w-6xl px-4 py-8 sm:px-6">
+
+    <!-- Page heading -->
+    <header class="mb-8">
+        <a href="{% url 'catalog:show_tenant_manage' tenant.pk %}"
+           class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-orange-600">
+            &larr; Back to restaurant
+        </a>
+
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+            Manage Menu
+        </h1>
+
+        <p class="mt-2 text-sm text-gray-500">
+            Manage your restaurant's menu categories and items.
+        </p>
+    </header>
+
+    <!-- Section selector -->
+    <div class="mb-8 flex gap-3 border-b border-gray-200 pb-4">
+        <button type="button"
+                id="category-tab"
+                aria-controls="category-section"
+                aria-selected="true"
+                class="rounded-xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600">
+            Categories
+        </button>
+
+        <button type="button"
+                id="item-tab"
+                aria-controls="item-section"
+                aria-selected="false"
+                class="rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+            Menu Items
+        </button>
+    </div>
+
+    <!-- Categories -->
+    <section id="category-section">
+
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-gray-900">
+                    Menu Categories
+                </h2>
+                <p class="mt-1 text-sm text-gray-500">
+                    Organize your menu into categories.
+                </p>
+            </div>
+
+            <a href="{% url 'catalog:show_menuCategory_form' %}"
+               class="inline-flex items-center justify-center rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600">
+                + New Category
+            </a>
+        </div>
+
+        {% if categories %}
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				{% for category in categories %}
+					<div class="relative">
+						<a href="{% url 'catalog:edit_menuCategory_form' category.pk %}"
+						class="block rounded-xl transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+							<article class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 pr-16 shadow-sm transition hover:border-orange-200 hover:shadow-md">
+								<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
+									<span class="text-2xl">&#9776;</span>
+								</div>
+
+								<div class="min-w-0">
+									<h3 class="break-words text-lg font-bold text-gray-900">
+										{{ category.name }}
+									</h3>
+									<p class="mt-1 text-sm text-gray-500">
+										Menu category
+									</p>
+								</div>
+							</article>
+						</a>
+
+						<button type="button"
+								class="absolute right-3 top-3 rounded-lg p-2 text-red-600 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+								aria-label="Delete {{ category.name }}"
+								data-delete-url="{% url 'catalog:delete_menuCategory' category.pk %}"
+								data-delete-name="{{ category.name }}"
+								data-delete-type="category">
+								<svg xmlns="http://www.w3.org/2000/svg"
+									width="20"
+									height="20"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true">
+									<path d="M3 6h18" />
+									<path d="M8 6V4h8v2" />
+									<path d="m19 6-1 14H6L5 6" />
+									<path d="M10 11v5" />
+									<path d="M14 11v5" />
+								</svg>
+						</button>
+					</div>
+				{% endfor %}
+            </div>
+        {% else %}
+            <div class="rounded-2xl border-2 border-dashed border-gray-200 px-6 py-12 text-center">
+                <div class="text-4xl text-gray-300">&#9776;</div>
+
+                <h3 class="mt-4 font-semibold text-gray-900">
+                    No categories yet
+                </h3>
+
+                <p class="mt-2 text-sm text-gray-500">
+                    Create a category to organize your menu items.
+                </p>
+
+                <a href="{% url 'catalog:show_menuCategory_form' %}"
+                   class="mt-5 inline-flex rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600">
+                    Create your first category
+                </a>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- Menu items -->
+    <section id="item-section" class="hidden">
+
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-gray-900">
+                    Menu Items
+                </h2>
+                <p class="mt-1 text-sm text-gray-500">
+                    View the dishes and products available in your menu.
+                </p>
+            </div>
+
+            <a href="{% url 'catalog:show_menuItem_form' %}"
+               class="inline-flex items-center justify-center rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600">
+                + New Item
+            </a>
+        </div>
+
+        {% if menu_items %}
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+				{% for item in menu_items %}
+					<div class="relative">
+						<a href="{% url 'catalog:edit_menuItem_form' item.pk %}"
+						class="block rounded-xl transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+							<article class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md">
+
+								<div class="relative h-48 w-full overflow-hidden bg-orange-50">
+									{% if item.photo %}
+										<img src="{{ item.photo.url }}"
+											alt="{{ item.name }}"
+											loading="lazy"
+											class="absolute inset-0 h-full w-full object-cover">
+									{% else %}
+										<div class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-orange-800">
+											<span class="text-4xl">&#127860;</span>
+											<span class="text-xs font-semibold">
+												No photo available
+											</span>
+										</div>
+									{% endif %}
+								</div>
+
+								<div class="p-5 pr-14">
+									<div class="flex items-start justify-between gap-3">
+										<h3 class="break-words text-lg font-bold text-gray-900">
+											{{ item.name }}
+										</h3>
+
+										{% if item.vegetarian %}
+											<span class="shrink-0 rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
+												Vegetarian
+											</span>
+										{% endif %}
+									</div>
+
+									<p class="mt-2 line-clamp-2 text-sm text-gray-500">
+										{{ item.description }}
+									</p>
+
+									<div class="mt-4 flex items-center justify-between gap-3">
+										<span class="font-bold text-orange-600">
+											Rp {{ item.price }}
+										</span>
+
+										<span class="truncate text-xs text-gray-500">
+											{% if item.category %}
+												{{ item.category.name }}
+											{% else %}
+												Uncategorized
+											{% endif %}
+										</span>
+									</div>
+
+									{% if item.allergen_info %}
+										<p class="mt-3 text-xs text-gray-400">
+											Allergens: {{ item.allergen_info }}
+										</p>
+									{% endif %}
+								</div>
+							</article>
+						</a>
+
+						<button type="button"
+								class="absolute right-3 top-3 z-10 rounded-lg bg-white/95 p-2 text-red-600 shadow-sm transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+								aria-label="Delete {{ item.name }}"
+								data-delete-url="{% url 'catalog:delete_menuItem' item.pk %}"
+								data-delete-name="{{ item.name }}"
+								data-delete-type="item">
+								<svg xmlns="http://www.w3.org/2000/svg"
+									width="20"
+									height="20"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true">
+									<path d="M3 6h18" />
+									<path d="M8 6V4h8v2" />
+									<path d="m19 6-1 14H6L5 6" />
+									<path d="M10 11v5" />
+									<path d="M14 11v5" />
+								</svg>
+						</button>
+					</div>
+				{% endfor %}
+            </div>
+        {% else %}
+            <div class="rounded-2xl border-2 border-dashed border-gray-200 px-6 py-12 text-center">
+                <div class="text-4xl text-gray-300">&#127860;</div>
+
+                <h3 class="mt-4 font-semibold text-gray-900">
+                    No menu items yet
+                </h3>
+
+                <p class="mt-2 text-sm text-gray-500">
+                    Add your first item to your restaurant menu.
+                </p>
+
+                <a href="{% url 'catalog:show_menuItem_form' %}"
+                   class="mt-5 inline-flex rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-orange-600">
+                    Add your first item
+                </a>
+            </div>
+        {% endif %}
+    </section>
+</main>
+
+{% include "catalog/components/delete_modal.html" %}
+
+<script>
+    const categoryTab = document.getElementById("category-tab");
+    const itemTab = document.getElementById("item-tab");
+
+    const categorySection = document.getElementById("category-section");
+    const itemSection = document.getElementById("item-section");
+
+    const activeTabClasses =
+        "rounded-xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-600";
+
+    const inactiveTabClasses =
+        "rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50";
+
+    function switchSection(section) {
+        const showCategories = section === "category";
+
+        categorySection.classList.toggle("hidden", !showCategories);
+        itemSection.classList.toggle("hidden", showCategories);
+
+        categoryTab.className = showCategories
+            ? activeTabClasses
+            : inactiveTabClasses;
+
+        itemTab.className = showCategories
+            ? inactiveTabClasses
+            : activeTabClasses;
+
+        categoryTab.setAttribute("aria-selected", String(showCategories));
+        itemTab.setAttribute("aria-selected", String(!showCategories));
+    }
+
+    categoryTab.addEventListener("click", () => switchSection("category"));
+    itemTab.addEventListener("click", () => switchSection("item"));
+
+	const deleteModal = document.getElementById("delete-modal");
+	const deleteModalForm = document.getElementById("delete-modal-form");
+	const deleteModalTitle = document.getElementById("delete-modal-title");
+	const deleteModalMessage = document.getElementById("delete-modal-message");
+	const cancelDeleteButton = document.getElementById("cancel-delete");
+
+	let lastDeleteButton = null;
+
+	function openDeleteModal(button) {
+		const objectName = button.dataset.deleteName;
+		const objectType = button.dataset.deleteType;
+
+		lastDeleteButton = button;
+
+		deleteModalForm.action = button.dataset.deleteUrl;
+
+		if (objectType === "category") {
+			deleteModalTitle.textContent = "Delete menu category?";
+			deleteModalMessage.textContent =
+				`Are you sure you want to delete "${objectName}"? This action cannot be undone.`;
+		} else {
+			deleteModalTitle.textContent = "Delete menu item?";
+			deleteModalMessage.textContent =
+				`Are you sure you want to delete "${objectName}"? This action cannot be undone.`;
+		}
+
+		deleteModal.classList.remove("hidden");
+		deleteModal.classList.add("flex");
+
+		cancelDeleteButton.focus();
+	}
+
+	function closeDeleteModal() {
+		deleteModal.classList.add("hidden");
+		deleteModal.classList.remove("flex");
+
+		if (lastDeleteButton) {
+			lastDeleteButton.focus();
+		}
+	}
+
+	document.querySelectorAll("[data-delete-url]").forEach((button) => {
+		button.addEventListener("click", (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			openDeleteModal(button);
+		});
+	});
+
+	cancelDeleteButton.addEventListener("click", closeDeleteModal);
+
+	// Close when clicking the backdrop, but not the modal itself.
+	deleteModal.addEventListener("click", (event) => {
+		if (event.target === deleteModal) {
+			closeDeleteModal();
+		}
+	});
+
+	// Close when pressing Escape.
+	document.addEventListener("keydown", (event) => {
+		if (event.key === "Escape" && !deleteModal.classList.contains("hidden")) {
+			closeDeleteModal();
+		}
+	});
+</script>
+{% endblock content %}
