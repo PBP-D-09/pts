@@ -60,7 +60,7 @@ class SeedDemoCommandTests(TestCase):
                 "locations": 5,
                 "stocks": 5,
                 "categories": 10,
-                "menus": 15,
+                "menus": 50,
                 "addresses": 2,
                 "orders": 12,
                 "order_items": 13,

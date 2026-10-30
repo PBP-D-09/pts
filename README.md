@@ -133,7 +133,7 @@ Masyarakat yang ingin menjaga pola makan sehat sekaligus meminimalkan dampak sam
 * map: Menentukan dan menyimpan titik alamat pengiriman interaktif menggunakan peta OpenStreetMap (OSM).
 * review: Memberikan review rating rasa makanan, mengunggah feedback makanan.
 
-### Admin
+### Tenant
 Tim operasional setiap tenan yang bertugas mengelola katalog menu, memproses pesanan masuk, serta memantau operasional tenan dan lokasi pengiriman.
 
 * accounts: Memantau data pengguna terdaftar dan melihat ringkasan statistik preferensi diet pelanggan untuk perancangan menu.
@@ -167,8 +167,8 @@ Ensure you have the following tools installed on your development machine:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/JocimSus/myportofolio.git
-   cd myportofolio
+   git clone https://github.com/PBP-D-09/pts.git
+   cd pts
    ```
 
 2. **Synchronize dependencies**:
@@ -240,6 +240,28 @@ The application will be accessible at:
 uv run python manage.py seed_demo
 ```
 
+Perintah ini idempotent dan mengisi skenario demo lintas modul: akun customer,
+akun tenan, admin, profil dan preferensi diet, katalog, lokasi, keranjang,
+pesanan dengan seluruh status, serta ulasan. Jalankan ulang kapan saja untuk
+memperbarui data demo tanpa menduplikasinya.
+
+Untuk menghapus hanya data demo lalu membuatnya kembali:
+
+```bash
+uv run python manage.py seed_demo --reset-demo
+```
+
+Secara default perintah ditolak saat `PRODUCTION=True`. Jika data demo memang
+hendak dibuat pada deployment, berikan persetujuan eksplisit:
+
+```bash
+uv run python manage.py seed_demo --allow-production
+```
+
+> **Peringatan keamanan:** perintah ini membuat superuser dengan kredensial demo
+> yang terdokumentasi di bawah. Jangan biarkan akun tersebut aktif pada deployment
+> publik; segera ganti password atau hapus akun demo setelah pengujian.
+
 Kredensial utama menggunakan password `Demo123!`:
 
 | Role | Email |
@@ -263,3 +285,11 @@ python manage.py migrate
 ```
 
 ---
+
+## AI Disclosure
+
+Kelompok kami menggunakan asisten AI, baik itu coding agents ataupun web chabot biasa. Penggunaan AI sejak digunakan hanya dalam tahap realisasi desain dari Figma menjadi sebuah website yang kohesif. AI digunakan untuk membuat framework template aplikasi (models, views, templates) yang kemudian dikembangkan lebih lanjut.
+
+Dalam tahap pengembangan, AI membantu menghasilkan dan mengiterasi kode dalam pembuatan aplikasi khususnya dalam implementasi AJAX, indikator pengiriman, dan penampilan scroll dalam UI. Sebagian kode implementasi menggunakan atau mengadaptasi kode yang digenerasi oleh AI.
+
+Keputusan dalam menggunakan kode yang digenerasi AI berada pada setiap anggota kelompok. Kami bertanggung jawab memahami kode yang digunakan, memeriksa kesesuaian dengan requirements modul, melakukan testing yang sepadan, serta memperbaiki masalah yang ditemukan selama proses development.
