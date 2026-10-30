@@ -5,15 +5,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('catalog', '0011_menucategory_id_alter_menucategory_name'),
+        ("catalog", "0011_menucategory_id_alter_menucategory_name"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='menuitem',
-            name='category',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='menu_items', to='catalog.menucategory'),
+            model_name="menuitem",
+            name="category",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="menu_items",
+                to="catalog.menucategory",
+            ),
         ),
     ]

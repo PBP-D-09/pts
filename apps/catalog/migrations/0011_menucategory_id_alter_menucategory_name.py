@@ -4,20 +4,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('catalog', '0010_remove_menuitem_category_alter_menucategory_tenantid'),
+        ("catalog", "0010_remove_menuitem_category_alter_menucategory_tenantid"),
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='menucategory',
-            name='id',
-            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
-        ),
         migrations.AlterField(
-            model_name='menucategory',
-            name='name',
+            model_name="menucategory",
+            name="name",
             field=models.CharField(max_length=255),
+        ),
+        migrations.AddField(
+            model_name="menucategory",
+            name="id",
+            field=models.BigAutoField(
+                auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+            ),
         ),
     ]
