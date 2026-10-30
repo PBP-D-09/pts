@@ -59,6 +59,36 @@ class AccountViewsTests(TestCase):
             price=price,
         )
 
+    def test_user_manager_rejects_invalid_user_and_superuser_data(self):
+        with self.assertRaisesMessage(ValueError, "Email wajib diisi."):
+            CustomUser.objects.create_user(email="", password="password")
+        with self.assertRaisesMessage(
+            ValueError, "Superuser harus memiliki is_staff=True."
+        ):
+            CustomUser.objects.create_superuser(
+                email="staff-false@example.com",
+                password="password",
+                is_staff=False,
+            )
+        with self.assertRaisesMessage(
+            ValueError, "Superuser harus memiliki is_superuser=True."
+        ):
+            CustomUser.objects.create_superuser(
+                email="superuser-false@example.com",
+                password="password",
+                is_superuser=False,
+            )
+
+    def test_tenant_display_name_falls_back_without_tenant_profile(self):
+        user = CustomUser.objects.create_user(
+            email="orphan-tenant@example.com",
+            password="password",
+            first_name="Nama Pengelola",
+            account_type=CustomUser.AccountType.TENANT,
+        )
+
+        self.assertEqual(user.display_name, "Nama Pengelola")
+
     def test_registration_creates_profile_and_logs_in(self):
         response = self.client.post(
             reverse("accounts:register"),
@@ -117,6 +147,31 @@ class AccountViewsTests(TestCase):
         self.assertContains(response, "Email ini sudah digunakan.")
         self.assertEqual(CustomUser.objects.count(), 1)
         self.assertEqual(Tenant.objects.count(), 0)
+
+    def test_customer_registration_rejects_existing_email(self):
+        self.create_user("used-customer@example.com")
+
+        response = self.client.post(
+            reverse("accounts:register"),
+            {
+                "full_name": "User Test",
+                "email": "USED-CUSTOMER@EXAMPLE.COM",
+                "password1": "strong-password-123",
+                "password2": "strong-password-123",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Email ini sudah digunakan.")
+        self.assertEqual(CustomUser.objects.count(), 1)
+
+    def test_authenticated_user_is_redirected_from_registration_pages(self):
+        self.client.force_login(self.create_user())
+
+        for url_name in ("accounts:register", "accounts:register_tenant"):
+            with self.subTest(url_name=url_name):
+                response = self.client.get(reverse(url_name))
+                self.assertRedirects(response, reverse("accounts:accounts"))
 
     def test_account_requires_authentication(self):
         response = self.client.get(reverse("accounts:accounts"))
@@ -335,6 +390,17 @@ class AccountViewsTests(TestCase):
         )
         self.assertFalse(user.userprofile.diets.filter(code="vegan").exists())
 
+    def test_unknown_diet_returns_not_found(self):
+        self.client.force_login(self.create_user())
+
+        response = self.client.post(
+            reverse("accounts:toggle_diet"),
+            {"diet": "not-a-diet"},
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertEqual(response.status_code, 404)
+
     def test_user_can_add_and_delete_own_allergy_with_activity_history(self):
         user = self.create_user()
         self.client.force_login(user)
@@ -352,6 +418,20 @@ class AccountViewsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(UserAllergy.objects.filter(pk=allergy.pk).exists())
         self.assertEqual(user.userprofile.diet_activities.count(), 2)
+
+    def test_empty_and_duplicate_allergy_do_not_create_extra_records(self):
+        user = self.create_user()
+        self.client.force_login(user)
+
+        for name in ("Kacang", " kacang ", "   "):
+            self.client.post(
+                reverse("accounts:manage_allergy"),
+                {"name": name},
+                HTTP_HX_REQUEST="true",
+            )
+
+        self.assertEqual(user.userprofile.allergies.count(), 1)
+        self.assertEqual(user.userprofile.diet_activities.count(), 1)
 
     def test_allergy_delete_rejects_malformed_and_out_of_range_ids(self):
         self.client.force_login(self.create_user())
@@ -426,6 +506,23 @@ class AccountViewsTests(TestCase):
         )
         self.assertEqual(user.userprofile.eco_points, 10)
         self.assertEqual(str(user.userprofile.co2_saved), "0.5")
+
+    def test_reset_requires_confirmation(self):
+        user = self.create_user()
+        record_eco_points(
+            profile=user.userprofile,
+            points=20,
+            activity_type=EcoPointActivity.ActivityType.ORDER,
+            description="Pesanan",
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(reverse("accounts:reset_eco_points"))
+
+        self.assertRedirects(response, reverse("accounts:accounts"))
+        user.userprofile.refresh_from_db()
+        self.assertIsNone(user.userprofile.eco_points_reset_at)
+        self.assertEqual(user.userprofile.eco_points, 20)
 
     def test_record_eco_points_updates_profile_aggregates(self):
         user = self.create_user()
@@ -554,6 +651,21 @@ class AccountViewsTests(TestCase):
             },
         )
         self.assertRedirects(response, reverse("accounts:accounts"))
+
+    def test_login_rejects_invalid_credentials(self):
+        self.create_user("login-error@example.com")
+
+        response = self.client.post(
+            reverse("accounts:login"),
+            {
+                "email": "login-error@example.com",
+                "password": "incorrect-password",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Email atau password tidak tepat.")
+        self.assertNotIn("_auth_user_id", self.client.session)
 
     def test_login_normalizes_email_case(self):
         self.create_user("mixed.case@example.com")
