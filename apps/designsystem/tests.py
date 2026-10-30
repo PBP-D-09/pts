@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from django.conf import settings
 from django.test import SimpleTestCase
 from django.urls import reverse
 
@@ -5,6 +8,28 @@ from .catalog import COLOR_GROUPS, NAVIGATION
 
 
 class DesignSystemPageTests(SimpleTestCase):
+    def test_application_background_has_a_subtle_global_texture(self):
+        styles = (
+            Path(settings.BASE_DIR) / "apps/theme/static_src/src/styles.css"
+        ).read_text()
+        page_background = styles.split("body > main {", 1)[1].split("}", 1)[0]
+
+        self.assertIn("background-image:", page_background)
+        self.assertIn("stroke-opacity='.065'", page_background)
+        self.assertIn("M72 87H116", page_background)
+        self.assertIn("128px 128px", page_background)
+
+    def test_accordion_content_uses_neutral_figma_colors(self):
+        styles = (
+            Path(settings.BASE_DIR) / "apps/theme/static_src/src/styles.css"
+        ).read_text()
+        accordion_content = styles.split(".ui-accordion__content {", 1)[1].split(
+            "}", 1
+        )[0]
+
+        self.assertIn("background: var(--color-primary-20);", accordion_content)
+        self.assertIn("color: var(--color-primary-60);", accordion_content)
+
     def test_page_is_public_and_uses_application_shell(self):
         response = self.client.get(reverse("designsystem:index"))
 

@@ -22,6 +22,58 @@
   will-change: transform;
 }
 
+.landing-steps-section {
+  --landing-diagonal-depth: clamp(2.5rem, 5vw, 4.5rem);
+
+  clip-path: polygon(
+    0 var(--landing-diagonal-depth),
+    100% 0,
+    100% calc(100% - var(--landing-diagonal-depth)),
+    0 100%
+  );
+  isolation: isolate;
+  position: relative;
+}
+
+.landing-steps-section::before,
+.landing-steps-section::after {
+  background: var(--color-primary-60);
+  content: "";
+  height: calc(var(--landing-diagonal-depth) + 0.5rem);
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  z-index: 0;
+}
+
+.landing-steps-section::before {
+  clip-path: polygon(
+    0 calc(100% - 0.5rem),
+    100% 0,
+    100% 0.5rem,
+    0 100%
+  );
+  top: 0;
+}
+
+.landing-steps-section::after {
+  bottom: 0;
+  clip-path: polygon(
+    0 calc(100% - 0.5rem),
+    100% 0,
+    100% 0.5rem,
+    0 100%
+  );
+}
+
+.landing-step-card {
+  background: var(--color-neutral-10);
+  border: 2px solid var(--color-primary-40);
+  box-shadow: 8px 8px 0 var(--color-primary-100);
+  color: var(--color-primary-80);
+}
+
 [data-landing-page].landing-motion-ready [data-reveal-item] {
   opacity: 0;
   transform: translateY(1.5rem);
@@ -49,6 +101,10 @@
   transition-delay: 270ms;
 }
 
+[data-landing-page].landing-motion-ready [data-scroll-section].is-visible [data-reveal-order="4"] {
+  transition-delay: 360ms;
+}
+
 [data-faq-accordion].is-closing .ui-accordion__icon {
   transform: rotate(0deg);
 }
@@ -58,6 +114,10 @@
     height: clamp(12rem, 35vh, 20rem);
     left: 1.25rem;
     width: 4px;
+  }
+
+  .landing-step-card {
+    box-shadow: 10px 10px 0 var(--color-primary-100);
   }
 }
 
