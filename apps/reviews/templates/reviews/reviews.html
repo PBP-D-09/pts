@@ -20,22 +20,27 @@
         <div class="reviews-meal-image">{% if menu.image_url %}<img src="{{ menu.image_url }}" alt="{{ menu.name }}">{% else %}{% lucide 'image' size=36 %}<small>Meal photo</small>{% endif %}</div>
         <div>{% if menu.tenant %}<p class="reviews-muted reviews-small">{{ menu.tenant }}</p>{% endif %}<h2>{{ menu.name }}</h2>{% if menu.description %}<p class="reviews-muted">{{ menu.description }}</p>{% endif %}{% if menu.packaging_label %}<p class="reviews-packaging">{% lucide 'leaf' size=16 %} {{ menu.packaging_label }}</p>{% endif %}</div>
       </section>
-      <header class="reviews-heading"><div><h1>Customer Reviews</h1><p class="reviews-muted" data-review-heading-count>{{ summary.total }} reviews • {% if summary.total %}Real experiences from our community{% else %}Share the first experience with this meal{% endif %}</p></div>{% if not user.is_authenticated or user.is_customer %}{% include "components/button.html" with element_id="write-review" label="Write a Review" class_name="reviews-primary" %}{% endif %}</header>
-      {% if not user.is_authenticated %}<p class="reviews-guest">{% lucide 'message-square' size=20 %} You can read all reviews. Log in to write a review or mark one as helpful.</p>{% endif %}
-      <div id="reviews-error" class="reviews-error" role="alert" hidden>
-        <p>Something went wrong. Please try again.</p>
-        <button type="button" id="reviews-retry" class="ui-button reviews-secondary">Try Again</button>
+      <header class="reviews-heading">
+        <div>
+          <h1>Customer Reviews</h1>
+          <p class="reviews-muted" data-review-heading-count>{{ summary.total }} reviews • {% if summary.total %}Real experiences from our community{% else %}Share the first experience with this meal{% endif %}</p></div>{% if not user.is_authenticated or user.is_customer %}{% include "components/button.html" with element_id="write-review" label="Write a Review" class_name="reviews-primary" %}{% endif %}</header>
+        {% if not user.is_authenticated %}<p class="reviews-guest">{% lucide 'message-square' size=20 %} You can read all reviews. Log in to write a review or mark one as helpful.</p>{% endif %}
+        <div id="reviews-error" class="reviews-error" role="alert" hidden>
+          <p>Something went wrong. Please try again.</p>
+          <button type="button" id="reviews-retry" class="ui-button reviews-secondary">Try Again</button>
+        </div>
+        <div id="reviews-results" aria-live="polite">{% include "reviews/partials/results.html" %}</div>
+        <div id="reviews-loading" hidden aria-label="Loading reviews">{% for n in '123' %}<div class="ui-panel reviews-skeleton"><span aria-hidden="true">Loading avatar</span><i aria-hidden="true">Loading title</i><i aria-hidden="true">Loading content</i><i aria-hidden="true">Loading metadata</i><p>Loading reviews…</p></div>{% endfor %}</div>
       </div>
-      <div id="reviews-results" aria-live="polite">{% include "reviews/partials/results.html" %}</div>
-      <div id="reviews-loading" hidden aria-label="Loading reviews">{% for n in '123' %}<div class="ui-panel reviews-skeleton"><span></span><i></i><i></i><i></i><p>Loading reviews…</p></div>{% endfor %}</div>
-    </div>
-    <dialog id="reviews-dialog"
-            class="ui-dialog reviews-dialog"
-            aria-label="Review">
-      <button type="button" data-close class="reviews-close" aria-label="Close">{% lucide 'x' size=20 %}</button>
-      <div id="reviews-dialog-content"></div>
-    </dialog>
-    <template id="reviews-login-prompt"><h2>Log in to continue</h2><p class="reviews-muted">Read every review, any time. Log in to write a review or mark one as helpful.</p><div class="reviews-actions"><button type="button" data-close class="ui-button reviews-secondary">Not now</button><a class="ui-button reviews-primary"
+      <dialog id="reviews-dialog"
+              class="ui-dialog reviews-dialog"
+              aria-label="Review">
+        <button type="button" data-close class="reviews-close" aria-label="Close">{% lucide 'x' size=20 %}</button>
+        <div id="reviews-dialog-content"></div>
+      </dialog>
+      <template id="reviews-login-prompt">
+        <h2>Log in to continue</h2>
+        <p class="reviews-muted">Read every review, any time. Log in to write a review or mark one as helpful.</p><div class="reviews-actions"><button type="button" data-close class="ui-button reviews-secondary">Not now</button><a class="ui-button reviews-primary"
    href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}">Log In</a></div></template>
-  </main>
+    </main>
 {% endblock %}

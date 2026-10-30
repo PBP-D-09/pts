@@ -29,10 +29,12 @@
   {% for review in page %}
     {% include "reviews/partials/card.html" %}
   {% empty %}
-    <section class="ui-panel reviews-empty">{% if summary.total %}{% lucide 'circle-alert' size=32 %}<h2>No reviews match your filters</h2><p class="reviews-muted">Try changing or clearing your current filters.</p><a href="{{ clear_filters_url }}"
+    <section class="ui-panel reviews-empty">{% if summary.total %}{% lucide 'circle-alert' size=32 %}<h2>No reviews match your filters</h2>
+      <p class="reviews-muted">Try changing or clearing your current filters.</p><a href="{{ clear_filters_url }}"
    data-filter-link
-   class="ui-button reviews-secondary">Clear Filters</a>{% else %}{% lucide 'message-square' size=32 %}<h2>No reviews yet</h2><p class="reviews-muted">Be the first to share your experience with this meal and its sustainable packaging.</p>{% if not user.is_authenticated or user.is_customer %}<button type="button" data-write class="ui-button reviews-primary">Write the First Review</button>{% endif %}{% endif %}</section>
-  {% endfor %}
+   class="ui-button reviews-secondary">Clear Filters</a>{% else %}{% lucide 'message-square' size=32 %}<h2>No reviews yet</h2>
+      <p class="reviews-muted">Be the first to share your experience with this meal and its sustainable packaging.</p>{% if not user.is_authenticated or user.is_customer %}<button type="button" data-write class="ui-button reviews-primary">Write the First Review</button>{% endif %}{% endif %}</section>
+{% endfor %}
 </div>
 <div id="reviews-pagination" class="reviews-pagination">{% if next_url %}<a href="{{ next_url }}"
    data-load-more
