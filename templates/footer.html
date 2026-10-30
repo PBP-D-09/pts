@@ -5,24 +5,36 @@
     <div class="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
       <div class="flex justify-between gap-10 lg:gap-20">
         <a class="text-h5 text-primary-80"
-           href="{% url "landing:landing" %}">Sustaina<span class="text-tertiary-80">Bowl</span></a>
+           href="{% url 'landing:landing' %}">Sustaina<span class="text-tertiary-80">Bowl</span></a>
         <nav class="text-h5 grid gap-1 text-neutral-100"
              aria-label="Navigasi footer">
-          <a href="{% url "landing:landing" %}" class="cursor-pointer">Home</a>
-          <a href="{% url 'landing:landing' %}" class="cursor-pointer">Catalog</a>
-          <a href="{% url 'landing:landing' %}" class="cursor-pointer">Tenants</a>
+          <a href="{% url 'landing:landing' %}" class="cursor-pointer">Home</a>
+          <a href="{% url 'catalog:show_catalog' %}" class="cursor-pointer">Catalog</a>
+          <a href="{% url 'map:map' %}" class="cursor-pointer">Map</a>
         </nav>
       </div>
       <div class="text-center lg:pr-12">
         <p class="text-h5 text-neutral-100">Connect with Us!</p>
         <div class="mt-3 flex justify-center gap-4 text-primary-90">
           <a class="ui-icon-button ui-icon-button--ghost"
-             href="mailto:hello@sustainabowl.com">{% lucide "mail" size=24 stroke_width=2 %}</a>
+             href="mailto:hello@sustainabowl.com"
+             aria-label="Kirim email ke SustainaBowl">{% lucide "mail" size=24 stroke_width=2 %}</a>
           <a class="ui-icon-button ui-icon-button--ghost"
              href="https://instagram.com"
+             target="_blank"
+             rel="noopener noreferrer"
              aria-label="Instagram SustainaBowl">
             <img src="https://cdn.simpleicons.org/instagram/134954"
                  alt="Instagram SustainaBowl"
+                 class="w-6 h-6" />
+          </a>
+          <a class="ui-icon-button ui-icon-button--ghost"
+             href="https://github.com/PBP-D-09/pts"
+             target="_blank"
+             rel="noopener noreferrer"
+             aria-label="GitHub SustainaBowl">
+            <img src="https://cdn.simpleicons.org/github/134954"
+                 alt="GitHub SustainaBowl"
                  class="w-6 h-6" />
           </a>
         </div>

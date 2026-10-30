@@ -15,8 +15,6 @@
          class="flex items-center gap-1.5 hover:text-primary-80">{% lucide "house" size=20 stroke_width=2 %} Home</a>
       <a href="{{ catalog_url }}"
          class="flex items-center gap-1.5 hover:text-primary-80">{% lucide "salad" size=20 stroke_width=2 %} Catalog</a>
-      <a href="{% url 'landing:landing' %}#tentang"
-         class="flex items-center gap-1.5 hover:text-primary-80">{% lucide "store" size=20 stroke_width=2 %} Tenants</a>
       <a href="{% url 'map:map' %}"
          class="flex items-center gap-1.5 hover:text-primary-80">{% lucide "map" size=20 stroke_width=2 %} Map</a>
       {% if user.is_authenticated %}
@@ -86,8 +84,6 @@
            href="{% url 'landing:landing' %}">Home</a>
         <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
            href="{{ catalog_url }}">Catalog</a>
-        <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
-           href="{% url 'landing:landing' %}#tentang">Tenants</a>
         <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
            href="{% url 'map:map' %}">Map</a>
         <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80 flex items-center justify-between"

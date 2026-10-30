@@ -14,8 +14,6 @@ class DesignSystemPageTests(SimpleTestCase):
         self.assertContains(response, "Design System | SustainaBowl")
         self.assertContains(response, 'aria-label="Navigasi utama"')
         self.assertContains(response, 'aria-label="Navigasi footer"')
-        self.assertContains(response, 'href="/#manfaat"')
-        self.assertContains(response, 'href="/#tentang"')
 
     def test_page_rejects_post_requests(self):
         response = self.client.post(reverse("designsystem:index"))

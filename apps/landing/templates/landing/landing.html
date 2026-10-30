@@ -2,6 +2,7 @@
 
 {% load static lucide %}
 
+{% url 'catalog:show_catalog' as catalog_url %}
 {% block content %}
   <main id="top" class="relative overflow-x-hidden bg-neutral-20">
     <img src="{% static 'landing/img/sustainabowl-hero.png' %}"
@@ -15,7 +16,7 @@
         <p class="text-b7 lg:text-b5 lg:max-w-xl font-bold mx-auto mt-6 max-w-md text-primary-80">
           Platform healthy meal ordering yang mengintegrasikan sustainability pada setiap transaksi.
         </p>
-        <a href="#">{% include "components/button.html" with label="Try Now" class_name="mt-10 px-12" %}</a>
+        {% include "components/button.html" with href=catalog_url label="Try Now" class_name="mt-10 px-12" %}
       </div>
     </section>
     <section id="tentang"
