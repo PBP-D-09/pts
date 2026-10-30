@@ -39,22 +39,6 @@
           {% include "components/button.html" with href=catalog_url label="Try Now" element_id="landing-cta" class_name="px-12" %}
           {% include "components/button.html" with href=map_url label="Temukan tenan" variant="secondary" class_name="px-8" icon_left="map-pin" %}
         </div>
-        <ul class="mx-auto mt-8 flex max-w-xl flex-wrap justify-center gap-x-6 gap-y-3 text-b8 font-bold text-primary-80"
-            data-reveal-item
-            data-reveal-order="4">
-          <li class="flex items-center gap-2">
-            <span class="text-tertiary-70">{% lucide "circle-check" size=18 stroke_width=2 %}</span>
-            Preferensi diet
-          </li>
-          <li class="flex items-center gap-2">
-            <span class="text-tertiary-70">{% lucide "circle-check" size=18 stroke_width=2 %}</span>
-            Informasi alergen
-          </li>
-          <li class="flex items-center gap-2">
-            <span class="text-tertiary-70">{% lucide "circle-check" size=18 stroke_width=2 %}</span>
-            Eco Points
-          </li>
-        </ul>
       </div>
     </section>
     <section id="tentang"
@@ -89,7 +73,7 @@
           <ul class="mt-8 grid gap-3 sm:grid-cols-3">
             <li class="rounded-lg bg-primary-20 p-4 text-primary-80">
               <span class="flex">{% lucide "sliders-horizontal" size=24 stroke_width=1.75 %}</span>
-              <span class="text-b8 mt-3 block font-bold">Sesuai preferensi</span>
+              <span class="text-b8 mt-3 block font-bold">Preferensi diet</span>
             </li>
             <li class="rounded-lg bg-tertiary-20 p-4 text-tertiary-80">
               <span class="flex">{% lucide "package-check" size=24 stroke_width=1.75 %}</span>
@@ -190,7 +174,7 @@
         <article class="ui-panel min-h-60 border-primary-20 bg-primary-20 p-7 text-primary-80"
                  data-reveal-item
                  data-reveal-order="3">
-          <h3 class="text-h6">Pilih dengan Lebih Yakin</h3>
+          <h3 class="text-h6">Informasi alergen</h3>
           <p class="text-b7 mt-2">Periksa informasi alergen, preferensi makanan, dan ulasan sebelum menentukan menu yang sesuai untukmu.</p>
         </article>
       </div>

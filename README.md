@@ -234,6 +234,20 @@ Ensure you have the following tools installed on your development machine:
 The application will be accessible at:
 - Web Application: [http://localhost:8000](http://localhost:8000)
 
+### Demo Data
+
+```bash
+uv run python manage.py seed_demo
+```
+
+Kredensial utama menggunakan password `Demo123!`:
+
+| Role | Email |
+| --- | --- |
+| Customer | `customer@demo.sustainabowl.test` |
+| Tenant | `tenant@demo.sustainabowl.test` |
+| Admin | `admin@demo.sustainabowl.test` |
+
 ---
 
 ### Database Setup & Migrations
