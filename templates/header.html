@@ -11,8 +11,6 @@
        href="{% url 'landing:landing' %}">Sustaina<span class="text-tertiary-80">Bowl</span></a>
     <nav class="text-s6 hidden items-center gap-8 text-tertiary-80 md:flex"
          aria-label="Navigasi utama">
-      <a href="{% url 'landing:landing' %}"
-         class="flex items-center gap-1.5 hover:text-primary-80">{% lucide "house" size=20 stroke_width=2 %} Home</a>
       <a href="{{ catalog_url }}"
          class="flex items-center gap-1.5 hover:text-primary-80">{% lucide "salad" size=20 stroke_width=2 %} Catalog</a>
       <a href="{% url 'map:map' %}"
@@ -80,8 +78,6 @@
            aria-label="Navigasi mobile"
            hidden
            data-mobile-nav-menu>
-        <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
-           href="{% url 'landing:landing' %}">Home</a>
         <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
            href="{{ catalog_url }}">Catalog</a>
         <a class="rounded px-3 py-2.5 text-tertiary-80 hover:bg-secondary-10 hover:text-primary-80"
