@@ -18,6 +18,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "coverage[toml]>=7.17.0",
     "django-tailwind[cookiecutter,honcho,reload]>=4.5.0",
     "djlint>=1.44.2",
     "ruff>=0.16.4",
@@ -94,3 +95,15 @@ indent = 2
 blank_line_after_tag = "load,extends"
 line_break_after_multiline_tag = true
 max_line_length = 120
+
+[tool.coverage.run]
+source = ["apps.landing", "apps.accounts"]
+omit = [
+    "*/tests.py",
+    "*/migrations/*",
+    "*/admin.py",
+    "*/apps.py",
+]
+
+[tool.coverage.report]
+show_missing = true
