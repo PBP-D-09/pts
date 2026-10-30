@@ -11,11 +11,8 @@ from django.test import TestCase, override_settings
 from .forms import MenuCategoryForm, MenuItemForm
 from .models import AllergenIngredient, MenuCategory, MenuItem, TenantCuisine
 
-
 # A valid, tiny PNG used to exercise ImageField without requiring a fixture file.
-TINY_GIF = base64.b64decode(
-    "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-)
+TINY_GIF = base64.b64decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7")
 
 
 class CatalogTestDataMixin:
@@ -27,11 +24,19 @@ class CatalogTestDataMixin:
         username_field = user_model.USERNAME_FIELD
 
         cls.owner_user = user_model.objects.create_user(
-            **{username_field: "owner@example.com" if username_field == "email" else "owner"},
+            **{
+                username_field: "owner@example.com"
+                if username_field == "email"
+                else "owner"
+            },
             password="test-password-123",
         )
         cls.other_user = user_model.objects.create_user(
-            **{username_field: "other@example.com" if username_field == "email" else "other"},
+            **{
+                username_field: "other@example.com"
+                if username_field == "email"
+                else "other"
+            },
             password="test-password-123",
         )
 
@@ -174,18 +179,20 @@ class MenuItemModelTests(CatalogTestDataMixin, TestCase):
         self.assertFalse(MenuItem.objects.filter(pk=item_pk).exists())
 
     def test_photo_upload_path(self):
-        with tempfile.TemporaryDirectory() as media_root:
-            with override_settings(MEDIA_ROOT=media_root):
-                item = MenuItem.objects.create(
-                    name="Test Photo",
-                    description="Photo upload test",
-                    price=10000,
-                    photo=SimpleUploadedFile(
-                        "dish.gif", TINY_GIF, content_type="image/gif"
-                    ),
-                )
-                self.assertTrue(item.photo.name.startswith("menu_items/"))
-                item.photo.delete(save=False)
+        with (
+            tempfile.TemporaryDirectory() as media_root,
+            override_settings(MEDIA_ROOT=media_root),
+        ):
+            item = MenuItem.objects.create(
+                name="Test Photo",
+                description="Photo upload test",
+                price=10000,
+                photo=SimpleUploadedFile(
+                    "dish.gif", TINY_GIF, content_type="image/gif"
+                ),
+            )
+            self.assertTrue(item.photo.name.startswith("menu_items/"))
+            item.photo.delete(save=False)
 
 
 class MenuCategoryFormTests(CatalogTestDataMixin, TestCase):
@@ -224,9 +231,7 @@ class MenuItemFormTests(CatalogTestDataMixin, TestCase):
 
     def test_category_queryset_is_limited_to_given_tenant(self):
         form = MenuItemForm(tenant=self.tenant)
-        allowed_ids = set(
-            form.fields["category"].queryset.values_list("pk", flat=True)
-        )
+        allowed_ids = set(form.fields["category"].queryset.values_list("pk", flat=True))
         self.assertIn(self.category.pk, allowed_ids)
         self.assertNotIn(self.other_category.pk, allowed_ids)
 
@@ -282,9 +287,7 @@ class MenuItemFormTests(CatalogTestDataMixin, TestCase):
         self.assertFalse(item.vegetarian)
 
     def test_form_accepts_uploaded_image(self):
-        upload = SimpleUploadedFile(
-            "dish.gif", TINY_GIF, content_type="image/gif"
-        )
+        upload = SimpleUploadedFile("dish.gif", TINY_GIF, content_type="image/gif")
         form = MenuItemForm(
             data=self.valid_data(),
             files={"photo": upload},
