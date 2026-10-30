@@ -1,0 +1,20 @@
+{% load l10n %}
+
+{% comment %}
+  Tombol "Add to cart" di kartu menu. Dengan JavaScript, form ini membuka dialog
+  konfirmasi jumlah (add_to_cart_dialog.html); tanpa JavaScript, langsung menambah 1.
+{% endcomment %}
+<form method="post"
+      action="{% url 'orders:add_to_cart' item.pk %}"
+      data-add-to-cart
+      data-name="{{ item.name }}"
+      data-tenant="{{ tenant.name }}"
+      data-price="{{ item.price|unlocalize }}"
+      data-photo="{% if item.photo %}{{ item.photo.url }}{% endif %}">
+  {% csrf_token %}
+  <button type="submit"
+          class="ui-button ui-button--tertiary w-full"
+          aria-haspopup="dialog">
+    Add to cart
+  </button>
+</form>

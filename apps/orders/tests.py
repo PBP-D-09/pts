@@ -367,6 +367,18 @@ class CartViewTests(OrdersTestMixin, TestCase):
         response = self._ajax_post(url, {"quantity": 2})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["cart"]["total_items"], 2)
+        self.assertEqual(
+            response.json()["message"], "2x Grilled tempeh bowl added to your cart."
+        )
+
+    def test_tenant_menu_page_has_add_to_cart_dialog(self):
+        url = reverse("catalog:show_catalog_tenant", args=[self.greenhouse.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        add_url = reverse("orders:add_to_cart", kwargs={"menu_item_id": self.tempeh.id})
+        self.assertContains(response, f'action="{add_url}"')
+        self.assertContains(response, 'data-price="45000"')
+        self.assertContains(response, "data-add-to-cart-dialog", count=1)
 
     def test_stepper_increase_and_decrease_stops_at_one(self):
         cart = Cart.objects.create(user=self.user)
