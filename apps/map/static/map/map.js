@@ -9,7 +9,7 @@
   if (typeof L === "undefined") return;
 
   const NEAREST_TO_FIT = 8;
-  const TILE_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
   const TILE_ATTRIBUTION =
     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
@@ -37,7 +37,11 @@
       [center.latitude, center.longitude],
       zoom,
     );
-    L.tileLayer(TILE_URL, { maxZoom: 19, attribution: TILE_ATTRIBUTION }).addTo(map);
+        L.tileLayer(TILE_URL, {
+      maxZoom: 19,
+      attribution: TILE_ATTRIBUTION,
+      referrerPolicy: "strict-origin-when-cross-origin",
+    }).addTo(map);
     // Leaflet perlu ukuran kontainer yang final; panggil ulang setelah layout siap.
     window.setTimeout(() => map.invalidateSize(), 150);
     return map;
