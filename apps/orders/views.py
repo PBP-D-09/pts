@@ -181,10 +181,10 @@ def add_to_cart_view(request: HttpRequest, menu_item_id) -> HttpResponse:
     menu_item = get_object_or_404(MenuItem, id=menu_item_id)
     cart = get_or_create_cart(request)
 
-    quantity = _parse_int(_request_data(request).get("quantity", 1)) or 1
+    quantity = max(_parse_int(_request_data(request).get("quantity", 1)) or 1, 1)
     add_item_to_cart(cart, menu_item, quantity)
 
-    message = f"{menu_item.name} added to your cart."
+    message = f"{quantity}x {menu_item.name} added to your cart."
     if _is_ajax(request):
         return JsonResponse(
             {"success": True, "message": message, "cart": _cart_to_dict(cart)}

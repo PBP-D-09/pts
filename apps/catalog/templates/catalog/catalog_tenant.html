@@ -103,10 +103,7 @@
                       <div class="mt-auto border-t border-orange-100 pt-4">
                         <p class="text-xl font-bold text-orange-700">Rp {{ menuItem.price }}</p>
                         <div class="mt-4 flex flex-col gap-2">
-                          <form method="post" action="{% url 'orders:add_to_cart' menuItem.pk %}">
-                            {% csrf_token %}
-                            <button type="submit" class="ui-button ui-button--tertiary w-full">Add to cart</button>
-                          </form>
+                          {% include "orders/partials/add_to_cart_button.html" with item=menuItem %}
                           <a href="{% url 'reviews:menu' menu_key=menuItem.pk %}"
                              class="ui-button ui-button--secondary"
                              aria-label="Read reviews for {{ menuItem.name }}">Read Reviews</a>
@@ -165,10 +162,7 @@
                         <div class="mt-auto border-t border-orange-100 pt-4">
                           <p class="text-xl font-bold text-orange-700">Rp {{ menuItem.price }}</p>
                           <div class="mt-4 flex flex-col gap-2">
-                            <form method="post" action="{% url 'orders:add_to_cart' menuItem.pk %}">
-                              {% csrf_token %}
-                              <button type="submit" class="ui-button ui-button--tertiary w-full">Add to cart</button>
-                            </form>
+                            {% include "orders/partials/add_to_cart_button.html" with item=menuItem %}
                             <a href="{% url 'reviews:menu' menu_key=menuItem.pk %}"
                                class="ui-button ui-button--secondary"
                                aria-label="Read reviews for {{ menuItem.name }}">Read Reviews</a>
@@ -189,6 +183,7 @@
       </div>
     </section>
   </main>
+  {% include "orders/partials/add_to_cart_dialog.html" %}
   <script>
     document.addEventListener("DOMContentLoaded", () => {
         const links = document.querySelectorAll(".category-link");
