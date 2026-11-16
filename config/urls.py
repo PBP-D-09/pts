@@ -41,6 +41,7 @@ urlpatterns = [
     path("catalog/", include("apps.catalog.urls")),
     path("map/", include("apps.map.urls")),
     path("orders/", include("apps.orders.urls")),
+    path("api/v1/accounts/", include("apps.accounts.api_urls")),
 ]
 
 if not settings.PRODUCTION:

@@ -49,7 +49,7 @@ def update_profile(*, profile, full_name, email, birth_date, phone_number):
 
 
 @transaction.atomic
-def update_tenant(*, tenant, name, full_name, email, phone_number):
+def update_tenant(*, tenant, name, full_name, email, phone_number, cuisines=None):
     user = tenant.owner
     user.first_name = full_name.strip()
     user.email = email.lower()
@@ -58,6 +58,8 @@ def update_tenant(*, tenant, name, full_name, email, phone_number):
     tenant.name = name.strip()
     tenant.phone_number = phone_number.strip()
     tenant.save(update_fields=["name", "phone_number"])
+    if cuisines is not None:
+        tenant.cuisines.set(cuisines)
     return tenant
 
 

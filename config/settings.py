@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "django_htmx",
     "tailwind",
     "lucide",
+    "rest_framework",
+    "rest_framework.authtoken",
     "apps.theme",
     "apps.landing",
     "apps.accounts",
@@ -180,3 +182,23 @@ NOMINATIM_USER_AGENT = os.getenv(
 # Real Catalog UUIDs and metadata; never accept placeholder menus.
 REVIEWS_MENU_RESOLVER = "apps.reviews.integration.catalog_menu"
 REVIEWS_PACKAGING_RESOLVER = "apps.reviews.integration.order_packaging"
+
+# Django REST Framework (web service untuk aplikasi mobile Flutter).
+# Autentikasi mobile pakai Token Authentication (header
+# "Authorization: Token <key>"), diperoleh dari endpoint login/register.
+# SessionAuthentication dibiarkan aktif untuk browsable API DRF saat
+# development, mobile tidak memakainya.
+# Default permission IsAuthenticated; endpoint yang memang publik (register,
+# login) menandai diri eksplisit lewat @permission_classes([AllowAny]).
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
