@@ -53,12 +53,12 @@ for context only — you won't find those files here.
 ## Module ownership (same split in both repos)
 
 | Modul    | Anggota                      |
-| -------- | ----------------------------- |
-| accounts | Joachim Susatiyo               |
-| catalog  | Muhammad Zaky Robbani           |
-| orders   | Anantha Kamal Eirian             |
-| map      | Awiddy Munaya Rajanadoli          |
-| reviews  | I Komang Arka Darma Laksana        |
+| -------- | ---------------------------- |
+| accounts | Joachim Susatiyo             |
+| catalog  | Muhammad Zaky Robbani        |
+| orders   | Anantha Kamal Eirian         |
+| map      | Awiddy Munaya Rajanadoli     |
+| reviews  | I Komang Arka Darma Laksana  |
 
 Don't edit another person's module/feature folder in either repo unless they
 ask you to, or the change is explicitly shared infra (see each repo's
@@ -117,8 +117,6 @@ endpoints:
 ### Running / verifying
 
 ```bash
-devenv shell                                   # Python 3.14 + uv env
-uv sync                                        # after touching pyproject.toml
 python manage.py makemigrations --check --dry-run   # before calling a models.py change done
 python manage.py runserver
 curl -s http://localhost:8000/api/v1/<module>/<path>/   # sanity-check new endpoints
@@ -167,7 +165,6 @@ change is explicitly shared infra (`lib/core/`, `lib/app.dart`).
 ### Running / verifying
 
 ```bash
-devenv shell
 flutter pub get
 flutter analyze      # must stay clean
 flutter test         # must stay green
