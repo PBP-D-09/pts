@@ -138,6 +138,12 @@ change is explicitly shared infra (`lib/core/`, `lib/app.dart`).
   `data/{datasources,models,repositories}`, `domain/{entities,repositories,usecases}`,
   `presentation/{pages,providers,widgets}`. Keep new code for your module
   inside your own feature folder, in the matching layer.
+- Theming: `lib/core/theme/app_theme.dart` (`AppTheme.light`, set in
+  `MaterialApp.theme`) mirrors the color tokens from `pts/`'s
+  `apps/theme/static_src/src/styles.css` (primary teal, secondary
+  teal-green, tertiary green, neutral/surface grays). Pull colors from
+  `Theme.of(context).colorScheme` in your module's widgets instead of
+  hardcoding hex values, so the two apps stay visually in sync.
 - Navigation: `lib/core/navigation/home_shell.dart` is the single
   `BottomNavigationBar` shell wiring Landing + the 5 module pages via
   `IndexedStack`. It's shared infra — if a module needs a new top-level tab
