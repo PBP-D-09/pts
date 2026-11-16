@@ -87,6 +87,20 @@ def review_queryset(menu_key, user, filters):
     return qs.order_by(*ordering)
 
 
+def review_detail(review_id, user):
+    qs = (
+        Review.objects.filter(pk=review_id)
+        .select_related("author__tenant")
+        .annotate(helpful_count=Count("helpful_votes"))
+    )
+    votes = (
+        HelpfulVote.objects.filter(review=OuterRef("pk"), user_id=user.pk)
+        if user.is_authenticated
+        else HelpfulVote.objects.none()
+    )
+    return qs.annotate(voted=Exists(votes)).first()
+
+
 def rating_summary(menu_key):
     qs = Review.objects.filter(menu_key=menu_key)
     data = qs.aggregate(
