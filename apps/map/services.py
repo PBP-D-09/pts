@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
 
-from .models import DeliveryAddress
+from .models import DeliveryAddress, TenantLocation
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,16 @@ class GeocodingError(Exception):
 
 @transaction.atomic
 def save_delivery_address(form, *, owner):
-    address = form.save(commit=False)
+    return persist_delivery_address(form.save(commit=False), owner=owner)
+
+
+@transaction.atomic
+def persist_delivery_address(address, *, owner):
+    """Simpan alamat yang sudah tervalidasi (dari form web atau serializer DRF).
+
+    Menjaga aturan alamat utama: hanya satu alamat utama per pengguna, dan
+    alamat pertama otomatis menjadi alamat utama.
+    """
     address.owner = owner
     if address.is_default:
         DeliveryAddress.objects.filter(owner=owner, is_default=True).exclude(
@@ -58,10 +67,18 @@ def set_default_address(address):
 
 
 def save_tenant_location(form, *, tenant):
-    location = form.save(commit=False)
+    return persist_tenant_location(form.save(commit=False), tenant=tenant)
+
+
+def persist_tenant_location(location, *, tenant):
     location.tenant = tenant
     location.save()
     return location
+
+
+def delete_tenant_location(tenant):
+    deleted, _ = TenantLocation.objects.filter(tenant=tenant).delete()
+    return bool(deleted)
 
 
 def _nominatim_get(path, params):
