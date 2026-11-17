@@ -88,6 +88,8 @@ API: OpenStreetMap (untuk menampilkan peta open source [link](https://www.openst
 
 Halaman: `/map/` (peta tenan, publik), `/map/addresses/` (alamat pengiriman, wajib login), `/map/tenant/location/` (lokasi tenan, khusus akun tenan). Endpoint JSON: `/map/api/tenants/`, `/map/api/addresses/`, `/map/api/search/?q=`, `/map/api/reverse/?lat=&lng=`. Data contoh lokasi tenan: `python manage.py seed_map`.
 
+Endpoint Django REST Framework untuk aplikasi mobile (Token Authentication) ada di bawah `/api/v1/map/`: `tenants/`, `tenants/filters/`, `search/`, `reverse/`, `addresses/`, `addresses/<id>/`, `addresses/<id>/default/`, dan `tenant/location/`. Rincian method dan aksesnya ada di README repositori mobile (`pas`).
+
 **Anggota Bertanggungjawab: Awiddy Munaya Rajanadoli**
 
 #### Requirements
