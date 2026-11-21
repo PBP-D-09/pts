@@ -78,6 +78,8 @@ API & Filter: Menyediakan filter riwayat pesanan berdasarkan rentang tanggal dan
 
 AJAX/HTMX: Menyesuaikan kuantitas item keranjang atau menghapus item langsung dari keranjang belanja via tanpa melakukan refresh halaman.
 
+Endpoint Django REST Framework untuk aplikasi mobile (Token Authentication, khusus akun pelanggan) ada di bawah `/api/v1/orders/`. Path `/api/v1/orders/` sendiri adalah riwayat pesanan (dengan filter `status` dan `date_range`), lalu ada `<uuid>/`, `<uuid>/cancel/`, `<uuid>/note/`, `<uuid>/reorder/`, `cart/`, `cart/items/`, `cart/items/<uuid>/`, dan `checkout/`. Rincian method dan aksesnya ada di README repositori mobile (`pas`).
+
 ### map
 integrasi peta open street map, dan tenan alamat pada map
 
