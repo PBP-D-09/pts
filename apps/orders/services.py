@@ -33,6 +33,11 @@ ETA_FALLBACK_MINUTES = 30
 # Eco Points tambahan untuk setiap wadah reusable yang dikembalikan.
 CONTAINER_RETURN_POINTS = 10
 
+PACKAGING_DESCRIPTIONS = {
+    Order.PackagingType.REUSABLE: "Return it on your next order. Deposit refunded.",
+    Order.PackagingType.COMPOSTABLE: "Plant-fibre box. Breaks down in home compost.",
+}
+
 
 @dataclass(frozen=True)
 class DeliveryQuote:
@@ -68,13 +73,19 @@ def _merge_cart(source: Cart, target: Cart) -> None:
     source.delete()
 
 
+def get_user_cart(user) -> Cart:
+    """Keranjang milik user yang login (dipakai juga oleh API token tanpa sesi)."""
+    cart, _ = Cart.objects.get_or_create(user=user)
+    return cart
+
+
 def get_or_create_cart(request) -> Cart:
     """Mengambil atau membuat Cart untuk user yang login atau pengunjung guest.
     Jika guest baru saja login dan memiliki keranjang di sesi sebelumnya,
     keranjang sesi akan otomatis digabungkan (merge) ke keranjang user.
     """
     if request.user.is_authenticated:
-        user_cart, _ = Cart.objects.get_or_create(user=request.user)
+        user_cart = get_user_cart(request.user)
         guest_cart = _guest_cart(request)
         if guest_cart:
             _merge_cart(guest_cart, user_cart)
@@ -196,6 +207,31 @@ def get_reusable_stocks(tenants) -> list:
             "tenant"
         )
     )
+
+
+def get_packaging_options(stocks) -> list:
+    """Pilihan kemasan di checkout. Reusable dinonaktifkan jika stok wadah salah
+    satu tenant di keranjang sudah habis."""
+    sold_out = [stock.tenant.name for stock in stocks if stock.quantity < 1]
+    options = []
+    for value, label in Order.PackagingType.choices:
+        disabled = value == Order.PackagingType.REUSABLE and bool(sold_out)
+        options.append(
+            {
+                "value": value,
+                "label": label,
+                "description": (
+                    f"Sold out at {', '.join(sold_out)} today."
+                    if disabled
+                    else PACKAGING_DESCRIPTIONS[value]
+                ),
+                "fee": Order.PACKAGING_FEES[value],
+                "formatted_fee": format_rupiah(Order.PACKAGING_FEES[value]),
+                "eco_points": Order.PACKAGING_ECO_POINTS[value],
+                "disabled": disabled,
+            }
+        )
+    return options
 
 
 def format_address(address) -> str:

@@ -1,16 +1,12 @@
 import json
-from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Count
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.utils import timezone
-from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_GET, require_POST
 
 from apps.accounts.models import UserProfile
@@ -20,6 +16,7 @@ from apps.map.selectors import DEFAULT_CENTER
 
 from .forms import CheckoutForm, OrderNoteForm
 from .models import Cart, Order, ReusableContainerStock, format_rupiah
+from .selectors import DATE_RANGES, filter_user_orders, status_counts
 from .services import (
     CONTAINER_RETURN_POINTS,
     add_item_to_cart,
@@ -28,6 +25,7 @@ from .services import (
     get_cart_items,
     get_cart_tenants,
     get_or_create_cart,
+    get_packaging_options,
     get_reusable_stocks,
     get_user_unreturned_containers_count,
     quote_delivery,
@@ -37,16 +35,7 @@ from .services import (
     update_cart_item_quantity,
 )
 
-PACKAGING_DESCRIPTIONS = {
-    Order.PackagingType.REUSABLE: "Return it on your next order. Deposit refunded.",
-    Order.PackagingType.COMPOSTABLE: "Plant-fibre box. Breaks down in home compost.",
-}
 ORDERS_PER_PAGE = 10
-DATE_RANGES = {
-    "today": "Today",
-    "7_days": "Last 7 days",
-    "30_days": "Last 30 days",
-}
 
 
 def _is_ajax(request: HttpRequest) -> bool:
@@ -263,29 +252,6 @@ def remove_cart_item_view(request: HttpRequest, item_id) -> HttpResponse:
 # ==========================================
 
 
-def _packaging_options(stocks) -> list:
-    sold_out = [stock.tenant.name for stock in stocks if stock.quantity < 1]
-    options = []
-    for value, label in Order.PackagingType.choices:
-        disabled = value == Order.PackagingType.REUSABLE and bool(sold_out)
-        options.append(
-            {
-                "value": value,
-                "label": label,
-                "description": (
-                    f"Sold out at {', '.join(sold_out)} today."
-                    if disabled
-                    else PACKAGING_DESCRIPTIONS[value]
-                ),
-                "fee": Order.PACKAGING_FEES[value],
-                "formatted_fee": format_rupiah(Order.PACKAGING_FEES[value]),
-                "eco_points": Order.PACKAGING_ECO_POINTS[value],
-                "disabled": disabled,
-            }
-        )
-    return options
-
-
 @login_required
 def checkout_view(request: HttpRequest) -> HttpResponse:
     """Halaman checkout: alamat tersimpan, kemasan ramah lingkungan, dan catatan."""
@@ -305,7 +271,7 @@ def checkout_view(request: HttpRequest) -> HttpResponse:
     for address in addresses:
         address.quote = quote_delivery(address, tenants)
     stocks = get_reusable_stocks(tenants)
-    packaging_options = _packaging_options(stocks)
+    packaging_options = get_packaging_options(stocks)
 
     if request.method == "POST":
         form = CheckoutForm(_request_data(request), user=request.user)
@@ -435,54 +401,13 @@ def order_placed_view(request: HttpRequest, order_id) -> HttpResponse:
 # ==========================================
 
 
-def _status_counts(user) -> dict:
-    rows = (
-        Order.objects.filter(user=user)
-        .values("status")
-        .annotate(total=Count("id"))
-        .order_by()
-    )
-    counts = {status.value: 0 for status in Order.Status}
-    for row in rows:
-        counts[row["status"]] = row["total"]
-    counts["all"] = sum(counts.values())
-    return counts
-
-
 def _filter_orders(request: HttpRequest) -> dict:
     """Filter riwayat pesanan berdasarkan status dan rentang tanggal (?status=,
     ?date_range=today|7_days|30_days|custom&start_date=&end_date=)."""
-    orders = Order.objects.filter(user=request.user).prefetch_related(
-        "items__menu_item"
-    )
-
-    active_status = request.GET.get("status", "all").strip().lower()
-    if active_status in Order.Status.values:
-        orders = orders.filter(status=active_status)
-    else:
-        active_status = "all"
-
-    date_range = request.GET.get("date_range", "all").strip().lower()
-    now = timezone.now()
-    if date_range == "today":
-        orders = orders.filter(created_at__date=timezone.localdate())
-    elif date_range == "7_days":
-        orders = orders.filter(created_at__gte=now - timedelta(days=7))
-    elif date_range == "30_days":
-        orders = orders.filter(created_at__gte=now - timedelta(days=30))
-    elif date_range == "custom":
-        start_date = parse_date(request.GET.get("start_date", ""))
-        end_date = parse_date(request.GET.get("end_date", ""))
-        if start_date:
-            orders = orders.filter(created_at__date__gte=start_date)
-        if end_date:
-            orders = orders.filter(created_at__date__lte=end_date)
-    else:
-        date_range = "all"
-
+    orders, active_status, date_range = filter_user_orders(request.user, request.GET)
     return {
         "orders": orders,
-        "status_counts": _status_counts(request.user),
+        "status_counts": status_counts(request.user),
         "active_status": active_status,
         "date_range": date_range,
         "unreturned_containers": get_user_unreturned_containers_count(request.user),
@@ -556,7 +481,7 @@ def cancel_order_view(request: HttpRequest, order_id) -> HttpResponse:
                 "message": message,
                 "order": _order_to_dict(order),
                 "card_html": _order_card_html(request, order),
-                "status_counts": _status_counts(request.user),
+                "status_counts": status_counts(request.user),
             }
         )
     messages.success(request, message)
